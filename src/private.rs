@@ -107,46 +107,48 @@ impl RedactFlags {
     }
 }
 
-pub fn redact(this: &dyn Debug, flags: RedactFlags) -> Result<DisplayDebug, std::fmt::Error> {
+pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
     let mut redacted = String::new();
 
-    if flags.fixed > 0 {
-        flags.redact_fixed(flags.fixed as usize, &mut redacted);
-        return Ok(DisplayDebug(redacted));
-    }
+    (|| {
+        if flags.fixed > 0 {
+            flags.redact_fixed(flags.fixed as usize, &mut redacted);
+            return;
+        }
 
-    let debug_formatted = if flags.debug_alternate {
-        format!("{:#?}", this)
-    } else {
-        format!("{:?}", this)
-    };
-
-    redacted.reserve(debug_formatted.len());
-
-    // Specialize for Option<T>
-    if flags.is_option {
-        if debug_formatted == "None" {
-            // We don't need to do any redacting
-            // https://prima.slack.com/archives/C03URH9N43U/p1661423554871499
-        } else if let Some(inner) = debug_formatted
-            .strip_prefix("Some(")
-            .and_then(|inner| inner.strip_suffix(')'))
-        {
-            redacted.push_str("Some(");
-            flags.redact_partial(inner, &mut redacted);
-            redacted.push(')');
+        let debug_formatted = if flags.debug_alternate {
+            format!("{:#?}", this)
         } else {
-            // This should never happen, but just in case...
+            format!("{:?}", this)
+        };
+
+        redacted.reserve(debug_formatted.len());
+
+        // Specialize for Option<T>
+        if flags.is_option {
+            if debug_formatted == "None" {
+                // We don't need to do any redacting
+                // https://prima.slack.com/archives/C03URH9N43U/p1661423554871499
+            } else if let Some(inner) = debug_formatted
+                .strip_prefix("Some(")
+                .and_then(|inner| inner.strip_suffix(')'))
+            {
+                redacted.push_str("Some(");
+                flags.redact_partial(inner, &mut redacted);
+                redacted.push(')');
+            } else {
+                // This should never happen, but just in case...
+                flags.redact_full(&debug_formatted, &mut redacted);
+            }
+            return;
+        }
+
+        if flags.partial {
+            flags.redact_partial(&debug_formatted, &mut redacted);
+        } else {
             flags.redact_full(&debug_formatted, &mut redacted);
         }
-        return Ok(DisplayDebug(redacted));
-    }
+    })();
 
-    if flags.partial {
-        flags.redact_partial(&debug_formatted, &mut redacted);
-    } else {
-        flags.redact_full(&debug_formatted, &mut redacted);
-    }
-
-    Ok(DisplayDebug(redacted))
+    DisplayDebug(redacted)
 }

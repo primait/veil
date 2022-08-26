@@ -106,7 +106,7 @@ impl FormatData<'_> {
                         debug_alternate,
                         is_option: #is_option,
                         #field_flags
-                    })?
+                    })
                 }
             } else {
                 quote! { #field_accessor }

@@ -153,7 +153,7 @@ pub fn derive_redact(
                     debug_alternate,
                     is_option: false,
                     #flags
-                })?
+                })
             }
         } else {
             variant_name.into_token_stream()
