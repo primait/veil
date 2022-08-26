@@ -1,6 +1,4 @@
-pub mod config;
+pub use veil_macros::Mask;
 
-pub mod startup;
-pub mod web;
-
-pub use config::Config;
+#[doc(hidden)]
+pub mod private;
