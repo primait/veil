@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    container_name: veil_web
+    volumes:
+      - .:/code
+      - app:/home/app
+      - "~/.ssh:/home/app/.ssh"
+      - "~/.gitconfig:/home/app/.gitconfig"
+      - "~/.gitignore:/home/app/.gitignore"
+    working_dir: /code
+    environment:
+      BUILD_ENV: dev
+      CARGO_HOME: /home/app/.cargo
+      CARGO_TARGET_DIR: /home/app/target-docker
+      CARGO_MAKE_DISABLE_UPDATE_CHECK: 1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth0
+      - jaeger
+      - postgres
+      - datadog
+
+  auth0:
+    image: public.ecr.aws/prima/localauth0:0.3.0
+    ports:
+      - 3000:3000
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.35
+    ports:
+      - 16686:16686
+      - 55681:55681
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      COLLECTOR_OTLP_HTTP_HOST_PORT: 55681
+
+  postgres:
+    image: public.ecr.aws/bitnami/postgresql:12
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  datadog:
+    image: mendhak/udp-listener:latest
+    environment:
+      UDPPORT: 8125
+    ports:
+      - "0.0.0.0:8125:8125"
+      - "0.0.0.0:8125:8125/udp"
+
+volumes:
+  app:

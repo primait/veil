@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: veil
+  description: Rust derive macro for masking sensitive data in `std::fmt::Debug`
+spec:
+  type: service
+  lifecycle: production
+  owner: team-shared-services

@@ -1,0 +1,101 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2022-01-10T10:03:38.665Z",
+  "__export_source": "insomnia.desktop.app:v2021.7.2",
+  "resources": [
+    {
+      "_id": "req_90743d504e9f4ee3b6056ae07a0f65fc",
+      "parentId": "wrk_9679f30ce35b4539810ebfe94f40aff5",
+      "modified": 1641808277472,
+      "created": 1641380271641,
+      "url": "{{ _.host }}/graphql",
+      "name": "01 - Greeting",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n\\tgreeting\\n}\"}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "id": "pair_ef88ed8ad16b4bcc87a3f3278749b93a"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1641380271641,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_9679f30ce35b4539810ebfe94f40aff5",
+      "parentId": null,
+      "modified": 1641380252277,
+      "created": 1641380252277,
+      "name": "veil",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_c3dd28c26ebcce2804bbb7633349903b5919710d",
+      "parentId": "wrk_9679f30ce35b4539810ebfe94f40aff5",
+      "modified": 1641807870081,
+      "created": 1641380252295,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": {},
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1641380252295,
+      "_type": "environment"
+    },
+    {
+      "_id": "jar_c3dd28c26ebcce2804bbb7633349903b5919710d",
+      "parentId": "wrk_9679f30ce35b4539810ebfe94f40aff5",
+      "modified": 1641380252298,
+      "created": 1641380252298,
+      "name": "Default Jar",
+      "cookies": [],
+      "_type": "cookie_jar"
+    },
+    {
+      "_id": "spc_6e52ec1443ec405d9604391f5d27206d",
+      "parentId": "wrk_9679f30ce35b4539810ebfe94f40aff5",
+      "modified": 1641380252284,
+      "created": 1641380252284,
+      "fileName": "veil",
+      "contents": "",
+      "contentType": "yaml",
+      "_type": "api_spec"
+    },
+    {
+      "_id": "env_5df3344fe1f846d293d2336a58323591",
+      "parentId": "env_c3dd28c26ebcce2804bbb7633349903b5919710d",
+      "modified": 1641808275571,
+      "created": 1641807873398,
+      "name": "Local",
+      "data": {
+        "host": "http://localhost:8080"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "host"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1641807873398,
+      "_type": "environment"
+    }
+  ]
+}
