@@ -107,15 +107,15 @@ impl RedactFlags {
     }
 }
 
-pub fn redact(this: &dyn Debug, redact: RedactFlags) -> Result<DisplayDebug, std::fmt::Error> {
+pub fn redact(this: &dyn Debug, flags: RedactFlags) -> Result<DisplayDebug, std::fmt::Error> {
     let mut redacted = String::new();
 
-    if redact.fixed > 0 {
-        redact.redact_fixed(redact.fixed as usize, &mut redacted);
+    if flags.fixed > 0 {
+        flags.redact_fixed(flags.fixed as usize, &mut redacted);
         return Ok(DisplayDebug(redacted));
     }
 
-    let debug_formatted = if redact.debug_alternate {
+    let debug_formatted = if flags.debug_alternate {
         format!("{:#?}", this)
     } else {
         format!("{:?}", this)
@@ -124,7 +124,7 @@ pub fn redact(this: &dyn Debug, redact: RedactFlags) -> Result<DisplayDebug, std
     redacted.reserve(debug_formatted.len());
 
     // Specialize for Option<T>
-    if redact.is_option {
+    if flags.is_option {
         if debug_formatted == "None" {
             // We don't need to do any redacting
             // https://prima.slack.com/archives/C03URH9N43U/p1661423554871499
@@ -133,19 +133,19 @@ pub fn redact(this: &dyn Debug, redact: RedactFlags) -> Result<DisplayDebug, std
             .and_then(|inner| inner.strip_suffix(')'))
         {
             redacted.push_str("Some(");
-            redact.redact_partial(inner, &mut redacted);
+            flags.redact_partial(inner, &mut redacted);
             redacted.push(')');
         } else {
             // This should never happen, but just in case...
-            redact.redact_full(&debug_formatted, &mut redacted);
+            flags.redact_full(&debug_formatted, &mut redacted);
         }
         return Ok(DisplayDebug(redacted));
     }
 
-    if redact.partial {
-        redact.redact_partial(&debug_formatted, &mut redacted);
+    if flags.partial {
+        flags.redact_partial(&debug_formatted, &mut redacted);
     } else {
-        redact.redact_full(&debug_formatted, &mut redacted);
+        flags.redact_full(&debug_formatted, &mut redacted);
     }
 
     Ok(DisplayDebug(redacted))
