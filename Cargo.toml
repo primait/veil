@@ -9,7 +9,7 @@ default-run = "veil"
 
 [dependencies]
 actix-web = "4.*"
-actix-web-httpauth = "0.6.*"
+actix-web-httpauth = "0.8.*"
 
 async-graphql = {version = "4.*", features = ["time"]}
 async-graphql-actix-web = "4.*"
