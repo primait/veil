@@ -2,17 +2,17 @@
 
 use veil::*;
 
-#[derive(Mask)]
+#[derive(Redact)]
 struct CreditCard {
-    #[mask]
+    #[redact]
     cvv: String,
 
-    #[mask(partial)]
+    #[redact(partial)]
     number: String,
 
     expiration: String,
 
-    #[mask(with = 'X')]
+    #[redact(with = 'X')]
     name: String,
 
     billing_address: Address,
@@ -22,76 +22,76 @@ struct CreditCard {
     country: Country,
 }
 
-#[derive(Mask)]
+#[derive(Redact)]
 struct Address {
-    #[mask(partial)]
+    #[redact(partial)]
     line1: String,
 
-    #[mask(partial)]
+    #[redact(partial)]
     line2: String,
 
-    #[mask]
+    #[redact]
     house_or_flat_number: Option<u32>,
 
-    #[mask]
+    #[redact]
     postcode: String,
 
-    #[mask(partial)]
+    #[redact(partial)]
     city: String,
 }
 
-#[derive(Mask)]
-#[mask(all)]
-struct MaskAll {
+#[derive(Redact)]
+#[redact(all)]
+struct RedactAll {
     field: String,
     field2: String,
     field3: String,
 }
 
-#[derive(Mask)]
-#[mask(all, partial, with = 'X')]
-struct MaskAllWithFlags {
+#[derive(Redact)]
+#[redact(all, partial, with = 'X')]
+struct RedactAllWithFlags {
     field: String,
     field2: String,
     field3: String,
 }
 
-#[derive(Mask)]
+#[derive(Redact)]
 enum CreditCardIssuer {
-    #[mask(variant)]
+    #[redact(variant)]
     Visa {
-        #[mask(partial)]
+        #[redact(partial)]
         visa_data_1: String,
 
-        #[mask(partial)]
+        #[redact(partial)]
         visa_data_2: String,
     },
 
-    #[mask(variant, partial)]
+    #[redact(variant, partial)]
     MasterCard,
 
-    #[mask(variant)]
-    #[mask(all, fixed = 6, with = '$')]
+    #[redact(variant)]
+    #[redact(all, fixed = 6, with = '$')]
     SecretAgentCard {
         secret_data_1: String,
         secret_data_2: String,
     },
 }
 
-#[derive(Mask, Default)]
-#[mask(all, variant, partial)]
+#[derive(Redact, Default)]
+#[redact(all, variant, partial)]
 enum Country {
     #[default] // to test mixing attributes works ok
-    #[mask(variant)]
+    #[redact(variant)]
     UnitedKingdom,
     Italy,
 }
 
-#[derive(Mask)]
-struct TupleStruct(#[mask] u32, #[mask(partial)] u32);
+#[derive(Redact)]
+struct TupleStruct(#[redact] u32, #[redact(partial)] u32);
 
 #[test]
-fn test_credit_card_masking() {
+fn test_credit_card_redacting() {
     println!(
         "{:#?}",
         CreditCard {
@@ -138,10 +138,10 @@ fn test_credit_card_masking() {
 }
 
 #[test]
-fn test_mask_all() {
+fn test_redact_all() {
     println!(
         "{:#?}",
-        MaskAll {
+        RedactAll {
             field: "Hello".to_string(),
             field2: "World".to_string(),
             field3: "!".to_string(),
@@ -150,10 +150,10 @@ fn test_mask_all() {
 }
 
 #[test]
-fn test_mask_all_with_flags() {
+fn test_redact_all_with_flags() {
     println!(
         "{:#?}",
-        MaskAllWithFlags {
+        RedactAllWithFlags {
             field: "Hello".to_string(),
             field2: "World".to_string(),
             field3: "!".to_string(),
@@ -162,6 +162,6 @@ fn test_mask_all_with_flags() {
 }
 
 #[test]
-fn test_mask_tuple_struct() {
+fn test_redact_tuple_struct() {
     println!("{:#?}", TupleStruct(100, 2000000));
 }

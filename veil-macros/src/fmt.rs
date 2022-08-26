@@ -1,6 +1,6 @@
+use crate::flags::FieldFlags;
 use quote::ToTokens;
 use syn::spanned::Spanned;
-use crate::flags::FieldFlags;
 
 #[rustfmt::skip]
 /// Returns whether a syn::Type is an Option<T>
@@ -38,9 +38,17 @@ impl FormatData<'_> {
     /// `all_field_flags`: `FieldFlags` that apply to all fields, if set
     ///
     /// `with_self`: prepends `self.` to the field name for accessing struct fields
-    pub fn impl_debug(self, name: proc_macro2::TokenStream, all_fields_flags: Option<FieldFlags>, with_self: bool) -> Result<proc_macro2::TokenStream, syn::Error> {
+    pub fn impl_debug(
+        self,
+        name: proc_macro2::TokenStream,
+        all_fields_flags: Option<FieldFlags>,
+        with_self: bool,
+    ) -> Result<proc_macro2::TokenStream, syn::Error> {
         let fields = match self {
-            Self::FieldsNamed(syn::FieldsNamed { named: fields, .. }) | Self::FieldsUnnamed(syn::FieldsUnnamed { unnamed: fields, .. }) => fields
+            Self::FieldsNamed(syn::FieldsNamed { named: fields, .. })
+            | Self::FieldsUnnamed(syn::FieldsUnnamed {
+                unnamed: fields, ..
+            }) => fields,
         };
 
         let mut field_bodies = Vec::with_capacity(fields.len());
@@ -75,21 +83,26 @@ impl FormatData<'_> {
                         if flags.variant {
                             return Err(syn::Error::new(
                                 field.attrs[0].span(),
-                                "`#[mask(variant)]` is invalid for structs",
+                                "`#[redact(variant)]` is invalid for structs",
                             ));
                         } else {
                             Some(flags)
                         }
-                    },
+                    }
 
-                    [None] => None
+                    [None] => None,
                 },
-                _ => return Err(syn::Error::new(field.span(), "only one `#[mask(...)]` attribute is allowed per field")),
+                _ => {
+                    return Err(syn::Error::new(
+                        field.span(),
+                        "only one `#[redact(...)]` attribute is allowed per field",
+                    ))
+                }
             };
 
             field_bodies.push(if let Some(field_flags) = field_flags {
                 quote! {
-                    ::veil::private::mask(#field_accessor, ::veil::private::MaskFlags {
+                    ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
                         debug_alternate,
                         is_option: #is_option,
                         #field_flags
@@ -102,7 +115,9 @@ impl FormatData<'_> {
 
         Ok(match self {
             Self::FieldsNamed(syn::FieldsNamed { named, .. }) => {
-                let field_names = named.iter().map(|field| field.ident.as_ref().unwrap().to_string());
+                let field_names = named
+                    .iter()
+                    .map(|field| field.ident.as_ref().unwrap().to_string());
                 quote! {
                     f.debug_struct(&#name.as_ref())
                     #(
@@ -110,7 +125,7 @@ impl FormatData<'_> {
                     )*
                     .finish()?
                 }
-            },
+            }
 
             Self::FieldsUnnamed(syn::FieldsUnnamed { .. }) => {
                 quote! {

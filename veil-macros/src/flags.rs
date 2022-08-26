@@ -4,33 +4,38 @@ use syn::spanned::Spanned;
 
 #[derive(Clone, Copy)]
 pub struct FieldFlags {
-    /// Whether to blanket mask everything (fields, variants)
+    /// Whether to blanket redact everything (fields, variants)
     pub all: bool,
 
-    /// Masks the name of this enum variant, if applicable.
+    /// Redacts the name of this enum variant, if applicable.
     pub variant: bool,
 
-    /// Whether the field is partially or fully masked.
+    /// Whether the field is partially or fully redacted.
     ///
     /// Incompatible with `fixed`.
     pub partial: bool,
 
-    /// The character to use for masking. Defaults to `*`.
-    pub mask_char: char,
+    /// The character to use for redacting. Defaults to `*`.
+    pub redact_char: char,
 
-    /// Whether to mask with a fixed width, ignoring the length of the data.
+    /// Whether to redact with a fixed width, ignoring the length of the data.
     ///
     /// Incompatible with `partial`.
     pub fixed: Option<NonZeroU8>,
 }
 impl FieldFlags {
-    pub fn extract<const AMOUNT: usize>(attrs: &[syn::Attribute]) -> Result<[Option<Self>; AMOUNT], syn::Error> {
+    pub fn extract<const AMOUNT: usize>(
+        attrs: &[syn::Attribute],
+    ) -> Result<[Option<Self>; AMOUNT], syn::Error> {
         let mut extracted = [None; AMOUNT];
         let mut head = 0;
 
         for attr in attrs {
             if head > AMOUNT {
-                return Err(syn::Error::new(attr.span(), "too many `#[mask(...)]` attributes specified"));
+                return Err(syn::Error::new(
+                    attr.span(),
+                    "too many `#[redact(...)]` attributes specified",
+                ));
             }
 
             if let Some(flags) = Self::parse(attr)? {
@@ -49,41 +54,41 @@ impl FieldFlags {
         // The modifiers could be a single value or a list, so we need to handle both cases.
         let modifiers = match attr.parse_meta()? {
             // List
-            syn::Meta::List(syn::MetaList { path, nested, .. }) if path.is_ident("mask") => {
+            syn::Meta::List(syn::MetaList { path, nested, .. }) if path.is_ident("redact") => {
                 nested.into_iter().filter_map(|meta| match meta {
                     syn::NestedMeta::Meta(meta) => Some(meta),
-                    _ => None
+                    _ => None,
                 })
             }
 
             // Single value
             meta => match meta {
-                syn::Meta::Path(path) if path.is_ident("mask") => return Ok(Some(flags)),
-                _ => return Ok(None)
-            }
+                syn::Meta::Path(path) if path.is_ident("redact") => return Ok(Some(flags)),
+                _ => return Ok(None),
+            },
         };
 
         // Now we can finally process each modifier.
         for meta in modifiers {
             match meta {
-                // #[mask(all)]
+                // #[redact(all)]
                 syn::Meta::Path(path) if path.is_ident("all") => {
                     flags.all = true;
                 }
 
-                // #[mask(partial)]
+                // #[redact(partial)]
                 syn::Meta::Path(path) if path.is_ident("partial") => {
                     flags.partial = true;
                 }
 
-                // #[mask(variant)]
+                // #[redact(variant)]
                 syn::Meta::Path(path) if path.is_ident("variant") => {
                     flags.variant = true;
                 }
 
-                // #[mask(with = 'X')]
+                // #[redact(with = 'X')]
                 syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.lit {
-                    syn::Lit::Char(with) => flags.mask_char = with.value(),
+                    syn::Lit::Char(with) => flags.redact_char = with.value(),
                     _ => {
                         return Err(syn::Error::new_spanned(
                             kv.lit,
@@ -92,14 +97,14 @@ impl FieldFlags {
                     }
                 },
 
-                // #[mask(fixed = u8)]
+                // #[redact(fixed = u8)]
                 syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => match kv.lit {
                     syn::Lit::Int(int) => {
                         flags.fixed =
                             Some(NonZeroU8::new(int.base10_parse::<u8>()?).ok_or_else(|| {
                                 syn::Error::new_spanned(
                                     int,
-                                    "fixed masking width must be greater than zero",
+                                    "fixed redacting width must be greater than zero",
                                 )
                             })?)
                     }
@@ -112,15 +117,25 @@ impl FieldFlags {
                 },
 
                 // Anything we don't expect
-                syn::Meta::List(_) => return Err(syn::Error::new_spanned(attr, "unexpected list for `Mask` attribute")),
-                _ => return Err(syn::Error::new_spanned(attr, "unknown modifier for `Mask` attribute")),
+                syn::Meta::List(_) => {
+                    return Err(syn::Error::new_spanned(
+                        attr,
+                        "unexpected list for `Redact` attribute",
+                    ))
+                }
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        attr,
+                        "unknown modifier for `Redact` attribute",
+                    ))
+                }
             }
         }
 
         if flags.partial && flags.fixed.is_some() {
             return Err(syn::Error::new_spanned(
                 attr,
-                "`#[mask(partial)]` and `#[mask(fixed = ...)]` are incompatible",
+                "`#[redact(partial)]` and `#[redact(fixed = ...)]` are incompatible",
             ));
         }
 
@@ -132,7 +147,7 @@ impl Default for FieldFlags {
         Self {
             partial: false,
             fixed: None,
-            mask_char: '*',
+            redact_char: '*',
             variant: false,
             all: false,
         }
@@ -142,7 +157,7 @@ impl quote::ToTokens for FieldFlags {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
             partial,
-            mask_char,
+            redact_char,
             fixed,
             ..
         } = *self;
@@ -151,7 +166,7 @@ impl quote::ToTokens for FieldFlags {
 
         tokens.extend(quote! {
             partial: #partial,
-            mask_char: #mask_char,
+            redact_char: #redact_char,
             fixed: #fixed,
         });
     }

@@ -2,4 +2,4 @@
 
 # veil
 
-Rust derive macro for masking sensitive data in `std::fmt::Debug`
+Rust derive macro for redacting sensitive data in `std::fmt::Debug`
