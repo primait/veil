@@ -1,42 +1,13 @@
 [package]
-description = "Rust derive macro for masking sensitive data in `std::fmt::Debug`"
-edition = "2021"
 name = "veil"
 version = "0.1.0"
-default-run = "veil"
+edition = "2021"
+description = "Rust derive macro for redacting sensitive data in `std::fmt::Debug`"
+license = "MIT"
+repository = "https://github.com/primait/veil"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["veil-macros", "veil-tests"]
 
 [dependencies]
-actix-web = "4.*"
-actix-web-httpauth = "0.6.*"
-
-async-graphql = {version = "4.*", features = ["time"]}
-async-graphql-actix-web = "4.*"
-
-prima-tracing = { version = "0.5.*", features = ["prima-telemetry"] }
-prima_datadog = "0.3.*"
-tracing = {version = "0.1.*", features = ["max_level_debug", "release_max_level_info"]}
-tracing-actix-web = {version = "0.6.*", features = ["opentelemetry_0_17"]}
-
-sqlx = {version = "0.6.*", features = ["postgres", "runtime-tokio-native-tls", "uuid", "json", "time", "migrate", "offline"]}
-tokio = "1.*"
-
-jwks_client_rs = "0.3.*"
-
-# Misc
-anyhow = "1.*"
-dotenv = "0.15.*"
-envy = "0.4.*"
-serde = "1.*"
-serde_with = "2.*"
-strum = "0.24.*"
-strum_macros = "0.24.*"
-thiserror = "1.*"
-url = {version = "2.*", features = ["serde"]}
-
-[dev-dependencies]
-reqwest = "0.11.*"
-serde_json = "1.*"
-time = "0.3.*"
-uuid = {version = "1.*", features = ["v4"]}
+veil-macros = { path = "veil-macros" }
