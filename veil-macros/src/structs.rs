@@ -11,7 +11,7 @@ pub fn derive_redact(
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
     let top_level_flags = match attrs.len() {
         0 => None,
-        1 => match FieldFlags::extract::<1>(&attrs)? {
+        1 => match FieldFlags::extract::<1>(&attrs, false)? {
             [Some(flags)] => {
                 if flags.variant {
                     return Err(syn::Error::new(

@@ -15,7 +15,7 @@ pub fn derive_redact(
     name_ident: syn::Ident,
 ) -> Result<TokenStream, syn::Error> {
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
-    let top_level_flags = match FieldFlags::extract::<1>(&attrs)? {
+    let top_level_flags = match FieldFlags::extract::<1>(&attrs, false)? {
         [Some(flags)] => {
             if !flags.all || !flags.variant {
                 return Err(syn::Error::new(
@@ -33,7 +33,7 @@ pub fn derive_redact(
     // Collect each variant's flags
     let mut variant_flags = Vec::with_capacity(e.variants.len());
     for variant in &e.variants {
-        let mut flags = match FieldFlags::extract::<2>(&variant.attrs)? {
+        let mut flags = match FieldFlags::extract::<2>(&variant.attrs, top_level_flags.is_some())? {
             [None, None] => EnumVariantFieldFlags::default(),
 
             [Some(flags), None] => {

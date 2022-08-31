@@ -22,10 +22,24 @@ pub struct FieldFlags {
     ///
     /// Incompatible with `partial`.
     pub fixed: Option<NonZeroU8>,
+
+    /// Whether to skip redaction.
+    ///
+    /// Only allowed if this field is affected by a `#[redact(all)]` attribute.
+    ///
+    /// Fields are not redacted by default unless their parent is marked as `#[redact(all)]`, and this flag turns off that redaction for this specific field.
+    pub skip: bool,
 }
 impl FieldFlags {
+    /// Returns a list of `FieldFlags` parsed from an attribute.
+    ///
+    /// `AMOUNT` is the maximum number of attributes that should be parsed.
+    ///
+    /// `skip_allowed` should be `true` if `#[redact(all)]` is present and this field is affected by it.
+    /// Otherwise, `#[redact(skip)]` is not allowed.
     pub fn extract<const AMOUNT: usize>(
         attrs: &[syn::Attribute],
+        skip_allowed: bool
     ) -> Result<[Option<Self>; AMOUNT], syn::Error> {
         let mut extracted = [None; AMOUNT];
         let mut head = 0;
@@ -39,6 +53,13 @@ impl FieldFlags {
             }
 
             if let Some(flags) = Self::parse(attr)? {
+                if !skip_allowed && flags.skip {
+                    return Err(syn::Error::new(
+                        attr.span(),
+                        "`#[redact(skip)]` is not allowed here",
+                    ));
+                }
+
                 extracted[head] = Some(flags);
                 head += 1;
             }
@@ -47,7 +68,6 @@ impl FieldFlags {
         Ok(extracted)
     }
 
-    /// Returns `FieldFlags` parsed from an attribute.
     fn parse(attr: &syn::Attribute) -> Result<Option<Self>, syn::Error> {
         let mut flags = FieldFlags::default();
 
@@ -74,6 +94,11 @@ impl FieldFlags {
                 // #[redact(all)]
                 syn::Meta::Path(path) if path.is_ident("all") => {
                     flags.all = true;
+                }
+
+                // #[redact(skip)]
+                syn::Meta::Path(path) if path.is_ident("skip") => {
+                    flags.skip = true;
                 }
 
                 // #[redact(partial)]
@@ -150,6 +175,7 @@ impl Default for FieldFlags {
             redact_char: '*',
             variant: false,
             all: false,
+            skip: false,
         }
     }
 }

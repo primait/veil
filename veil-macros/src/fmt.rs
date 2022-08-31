@@ -72,13 +72,10 @@ impl FormatData<'_> {
                 }
             };
 
-            // Specialization for Option<T>
-            let is_option = is_ty_option(&field.ty);
-
             // Parse field flags from attributes on this field
             let field_flags = match field.attrs.len() {
                 0 => all_fields_flags,
-                1 => match FieldFlags::extract::<1>(&field.attrs)? {
+                1 => match FieldFlags::extract::<1>(&field.attrs, all_fields_flags.is_some())? {
                     [Some(flags)] => {
                         if flags.variant {
                             return Err(syn::Error::new(
@@ -100,17 +97,29 @@ impl FormatData<'_> {
                 }
             };
 
-            field_bodies.push(if let Some(field_flags) = field_flags {
-                quote! {
-                    ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
-                        debug_alternate,
-                        is_option: #is_option,
-                        #field_flags
-                    })
+            // If we have field flags...
+            if let Some(field_flags) = field_flags {
+                // And we actually want to redact this field...
+                if !field_flags.skip {
+                    // Redact it!
+
+                    // Specialization for Option<T>
+                    let is_option = is_ty_option(&field.ty);
+        
+                    field_bodies.push(quote! {
+                        ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
+                            debug_alternate,
+                            is_option: #is_option,
+                            #field_flags
+                        })
+                    });
+
+                    continue;
                 }
-            } else {
-                quote! { #field_accessor }
-            });
+            }
+
+            // Otherwise, just use the normal `Debug` implementation.
+            field_bodies.push(quote! { #field_accessor });
         }
 
         Ok(match self {
@@ -118,6 +127,7 @@ impl FormatData<'_> {
                 let field_names = named
                     .iter()
                     .map(|field| field.ident.as_ref().unwrap().to_string());
+                
                 quote! {
                     f.debug_struct(&#name.as_ref())
                     #(
