@@ -2,7 +2,7 @@ use std::num::NonZeroU8;
 
 use syn::spanned::Spanned;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct FieldFlags {
     /// Whether to blanket redact everything (fields, variants)
     pub all: bool,
@@ -53,11 +53,26 @@ impl FieldFlags {
             }
 
             if let Some(flags) = Self::parse(attr)? {
-                if !skip_allowed && flags.skip {
-                    return Err(syn::Error::new(
-                        attr.span(),
-                        "`#[redact(skip)]` is not allowed here",
-                    ));
+                if flags.skip {
+                    if !skip_allowed {
+                        return Err(syn::Error::new(
+                            attr.span(),
+                            "`#[redact(skip)]` is not allowed here",
+                        ));
+                    }
+
+                    // It doesn't make sense for `skip` to be present with any other flags.
+                    // We'll throw an error if it is.
+                    let valid_skip_flags = FieldFlags {
+                        skip: true,
+                        ..Default::default()
+                    };
+                    if flags != valid_skip_flags {
+                        return Err(syn::Error::new(
+                            attr.span(),
+                            "`#[redact(skip)]` should not have any other modifiers present",
+                        ));
+                    }
                 }
 
                 extracted[head] = Some(flags);
@@ -181,6 +196,8 @@ impl Default for FieldFlags {
 }
 impl quote::ToTokens for FieldFlags {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        assert!(!self.skip, "internal error: skip flag should not be set here");
+
         let Self {
             partial,
             redact_char,
