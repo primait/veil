@@ -25,6 +25,9 @@
 //!
 //! All the normal modifiers can be used on a redacted variant name as well.
 //!
+//! If you want to mix `#[redact(all)]` and `#[redact(variant)]` on the same enum (to redact the variant's name and also all of its struct fields),
+//! you can simply provide both attributes separately on the variant and this will work as expected.
+//!
 //! # Tips & Tricks
 //!
 //! ## Redacting all fields
