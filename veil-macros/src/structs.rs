@@ -42,12 +42,18 @@ pub fn derive_redact(
 
     // Generate the body of the std::fmt::Debug implementation
     let impl_debug = match &s.fields {
-        syn::Fields::Named(named) => FormatData::FieldsNamed(named).impl_debug(name_ident_str, top_level_flags, true)?,
-        syn::Fields::Unnamed(unnamed) => FormatData::FieldsUnnamed(unnamed).impl_debug(name_ident_str, top_level_flags, true)?,
-        syn::Fields::Unit => return Err(syn::Error::new(
-            name_ident.span(),
-            "unit structs do not need redacting as they contain no data, use `#[derive(Debug)]` instead"
-        ))
+        syn::Fields::Named(named) => {
+            FormatData::FieldsNamed(named).impl_debug(name_ident_str, top_level_flags, true)?
+        }
+        syn::Fields::Unnamed(unnamed) => {
+            FormatData::FieldsUnnamed(unnamed).impl_debug(name_ident_str, top_level_flags, true)?
+        }
+        syn::Fields::Unit => {
+            return Err(syn::Error::new(
+                name_ident.span(),
+                "unit structs do not need redacting as they contain no data, use `#[derive(Debug)]` instead",
+            ))
+        }
     };
 
     Ok(quote! {

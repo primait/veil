@@ -39,7 +39,7 @@ impl FieldFlags {
     /// Otherwise, `#[redact(skip)]` is not allowed.
     pub fn extract<const AMOUNT: usize>(
         attrs: &[syn::Attribute],
-        skip_allowed: bool
+        skip_allowed: bool,
     ) -> Result<[Option<Self>; AMOUNT], syn::Error> {
         let mut extracted = [None; AMOUNT];
         let mut head = 0;
@@ -55,10 +55,7 @@ impl FieldFlags {
             if let Some(flags) = Self::parse(attr)? {
                 if flags.skip {
                     if !skip_allowed {
-                        return Err(syn::Error::new(
-                            attr.span(),
-                            "`#[redact(skip)]` is not allowed here",
-                        ));
+                        return Err(syn::Error::new(attr.span(), "`#[redact(skip)]` is not allowed here"));
                     }
 
                     // It doesn't make sense for `skip` to be present with any other flags.
@@ -129,46 +126,24 @@ impl FieldFlags {
                 // #[redact(with = 'X')]
                 syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.lit {
                     syn::Lit::Char(with) => flags.redact_char = with.value(),
-                    _ => {
-                        return Err(syn::Error::new_spanned(
-                            kv.lit,
-                            "expected a character literal",
-                        ))
-                    }
+                    _ => return Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
                 },
 
                 // #[redact(fixed = u8)]
                 syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => match kv.lit {
                     syn::Lit::Int(int) => {
-                        flags.fixed =
-                            Some(NonZeroU8::new(int.base10_parse::<u8>()?).ok_or_else(|| {
-                                syn::Error::new_spanned(
-                                    int,
-                                    "fixed redacting width must be greater than zero",
-                                )
-                            })?)
+                        flags.fixed = Some(NonZeroU8::new(int.base10_parse::<u8>()?).ok_or_else(|| {
+                            syn::Error::new_spanned(int, "fixed redacting width must be greater than zero")
+                        })?)
                     }
-                    _ => {
-                        return Err(syn::Error::new_spanned(
-                            kv.lit,
-                            "expected a character literal",
-                        ))
-                    }
+                    _ => return Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
                 },
 
                 // Anything we don't expect
                 syn::Meta::List(_) => {
-                    return Err(syn::Error::new_spanned(
-                        attr,
-                        "unexpected list for `Redact` attribute",
-                    ))
+                    return Err(syn::Error::new_spanned(attr, "unexpected list for `Redact` attribute"))
                 }
-                _ => {
-                    return Err(syn::Error::new_spanned(
-                        attr,
-                        "unknown modifier for `Redact` attribute",
-                    ))
-                }
+                _ => return Err(syn::Error::new_spanned(attr, "unknown modifier for `Redact` attribute")),
             }
         }
 
