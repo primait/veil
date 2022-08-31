@@ -10,6 +10,9 @@ mod fmt;
 mod structs;
 
 #[proc_macro_derive(Redact, attributes(redact))]
+/// Implements [`std::fmt::Debug`] for a struct or enum variant, with certain fields redacted.
+///
+/// See the [crate level documentation](index.html) for more information.
 pub fn derive_redact(item: TokenStream) -> TokenStream {
     let item = syn::parse_macro_input!(item as syn::DeriveInput);
 
