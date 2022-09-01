@@ -220,16 +220,12 @@
 //!
 //! ### Example
 //!
-//! ```toml
-//! ## If APP_ENV = "dev" or APP_ENV = "qa"...
-//! [[env.APP_ENV]]
-//! values = ["dev", "qa"]
-//! redact = false # don't redact data
+//! `APP_ENV` is just an example here. You can match multiple environment variables with any UTF-8 name and value(s).
 //!
-//! ## If APP_ENV = "production" or APP_ENV = "staging"...
-//! [[env.APP_ENV]]
-//! values = ["production", "staging"]
-//! redact = true # do redact data
+//! ```toml
+//! [env.APP_ENV]
+//! redact = ["production", "staging"] # redact data if APP_ENV is set to any of these values
+//! skip-redact = ["dev", "qa"] # SKIP redacting data if APP_ENV is set to any of these values
 //!
 //! ## If APP_ENV isn't set or isn't recognised...
 //! [fallback]

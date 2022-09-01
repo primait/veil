@@ -107,18 +107,14 @@ Redaction can also be configured on a per-project basis using a `.veil.toml` fil
 
 ### Example
 
+`APP_ENV` is just an example here. You can match multiple environment variables with any UTF-8 name and value(s).
+
 ```toml
-# If APP_ENV = "dev" or APP_ENV = "qa"...
-[[env.APP_ENV]]
-values = ["dev", "qa"]
-redact = false # don't redact data
+[env.APP_ENV]
+redact = ["production", "staging"] # redact data if "APP_ENV" is set to any of these values
+skip-redact = ["dev", "qa"] # SKIP redacting data if "APP_ENV" is set to any of these values
 
-# If APP_ENV = "production" or APP_ENV = "staging"...
-[[env.APP_ENV]]
-values = ["production", "staging"]
-redact = true # do redact data
-
-# If APP_ENV isn't set or isn't recognised...
+# If "APP_ENV" isn't set or isn't recognised...
 [fallback]
 redact = true # do redact data (default)
 # OR

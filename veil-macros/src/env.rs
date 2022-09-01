@@ -34,11 +34,14 @@ impl ToTokens for FallbackBehavior {
 #[derive(Deserialize)]
 /// Should we redact data based on the values of environment variables?
 struct EnvRedactConfig {
-    /// If the environment variable is set to one of these values...
-    values: Vec<String>,
+    #[serde(default)]
+    /// Redaction should be ON if the environment variable is set to one of these values.
+    redact: Vec<String>,
 
-    /// ...then we should [redact|not redact] the data.
-    redact: bool,
+    #[serde(default)]
+    #[serde(rename = "skip-redact")]
+    /// Redaction should be OFF if the environment variable is set to one of these values.
+    skip_redact: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -59,13 +62,13 @@ impl Default for FallbackRedactConfig {
 struct TomlVeilConfig {
     #[serde(default)]
     fallback: FallbackRedactConfig,
-    env: Option<BTreeMap<String, Vec<EnvRedactConfig>>>,
+    env: Option<BTreeMap<String, EnvRedactConfig>>,
 }
 
 #[derive(Default)]
 pub struct VeilConfig {
     fallback: FallbackRedactConfig,
-    env: BTreeMap<String, Vec<EnvRedactConfig>>,
+    env: BTreeMap<String, EnvRedactConfig>,
 }
 impl VeilConfig {
     pub fn read(path: &Path) -> Result<Self, VeilConfigError> {
@@ -75,17 +78,22 @@ impl VeilConfig {
         // Ensure there are no duplicate key-value environment variable pairs.
         if let Some(env) = &config.env {
             let mut pairs = Vec::new();
-            for (key, configs) in env {
-                for config in configs {
-                    for value in &config.values {
-                        let pair = (key.as_str(), value.as_str());
-                        if pairs.contains(&pair) {
-                            return Err(VeilConfigError::Custom(format!(
-                                "duplicate key-value environment variable pair: {pair:?}"
-                            )));
-                        } else {
-                            pairs.push(pair);
-                        }
+            for (key, config) in env {
+                // Ensure there are no empty environment variable configs.
+                if config.redact.is_empty() && config.skip_redact.is_empty() {
+                    return Err(VeilConfigError::Custom(format!(
+                        "Environment variable {key:?} has an empty configuration"
+                    )));
+                }
+
+                for value in [&config.redact, &config.skip_redact].into_iter().flatten() {
+                    let pair = (key.as_str(), value.as_str());
+                    if pairs.contains(&pair) {
+                        return Err(VeilConfigError::Custom(format!(
+                            "duplicate key-value environment variable pair: {pair:?}"
+                        )));
+                    } else {
+                        pairs.push(pair);
                     }
                 }
             }
@@ -187,17 +195,20 @@ pub fn env_is_redaction_enabled(input: TokenStream) -> TokenStream {
         }
     };
 
-    let env = config.env.iter().map(|(key, configs)| {
-        let values = configs.iter().map(|config| config.values.as_slice());
-        let redacts = configs.iter().map(|config| config.redact);
+    let env = config.env.iter().map(|(key, config)| {
+        let redacts = &config.redact;
+        let skips = &config.skip_redact;
         quote! {
             if let Ok(value) = ::std::env::var(#key) {
-                #({
-                    static VALUES: &'static [&'static str] = &[#(#values),*];
-                    if VALUES.contains(&value.as_str()) {
-                        return #redacts;
-                    }
-                })*
+                static REDACTS: &[&str] = &[#(#redacts),*];
+                if REDACTS.contains(&value.as_str()) {
+                    return true;
+                }
+
+                static SKIPS: &[&str] = &[#(#skips),*];
+                if SKIPS.contains(&value.as_str()) {
+                    return false;
+                }
             }
         }
     });
