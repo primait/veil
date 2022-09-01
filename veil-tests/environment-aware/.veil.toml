@@ -1,0 +1,7 @@
+[[env.APP_ENV]]
+values = ["dev", "qa"]
+redact = false
+
+[[env.APP_ENV]]
+values = ["production", "staging"]
+redact = true

@@ -27,3 +27,12 @@ pub fn derive_redact(item: TokenStream) -> TokenStream {
         Err(err) => err.into_compile_error().into(),
     }
 }
+
+#[cfg(feature = "environment-aware")]
+mod env;
+
+#[cfg(feature = "environment-aware")]
+#[proc_macro]
+pub fn env_is_redaction_enabled(input: TokenStream) -> TokenStream {
+    env::env_is_redaction_enabled(input)
+}

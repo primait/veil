@@ -85,3 +85,40 @@ enum InsuranceStatus {
     },
 }
 ```
+
+# Environment Awareness
+
+You can configure Veil to redact or skip redacting data based on environment variables. Enable the `environment-aware` Cargo feature like so in your Cargo.toml:
+
+```toml
+[dependencies]
+veil = { version = "0.1", features = ["environment-aware"] }
+```
+
+Redaction can be completely disabled by setting the `VEIL_DISABLE_REDACTION` environment variable. This is only checked once during the program lifetime for security purposes.
+
+Redaction can also be configured on a per-project basis using a `.veil.toml` file. Put this file in your crate or workspace root and Veil will read it at compile time.
+
+**Please note, if you change the file, Veil won't see the changes until you do a clean build of your crate.**
+
+### Example
+
+```toml
+# If APP_ENV = "dev" or APP_ENV = "qa"...
+[[env.APP_ENV]]
+values = ["dev", "qa"]
+redact = false # don't redact data
+
+# If APP_ENV = "production" or APP_ENV = "staging"...
+[[env.APP_ENV]]
+values = ["production", "staging"]
+redact = true # do redact data
+
+# If APP_ENV isn't set or isn't recognised...
+[fallback]
+redact = true # do redact data (default)
+# OR
+redact = false # don't redact data
+# OR
+redact = "panic" # panic at runtime
+```

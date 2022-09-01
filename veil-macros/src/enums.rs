@@ -1,4 +1,4 @@
-use crate::{flags::FieldFlags, fmt::FormatData};
+use crate::{flags::FieldFlags, fmt::{FormatData, self}};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::spanned::Spanned;
@@ -148,13 +148,7 @@ pub fn derive_redact(
         // Variant name redacting
         let variant_name = variant.ident.to_string();
         let variant_name = if let Some(flags) = &flags.variant_flags {
-            quote! {
-                ::veil::private::redact(&#variant_name, ::veil::private::RedactFlags {
-                    debug_alternate,
-                    is_option: false,
-                    #flags
-                })
-            }
+            fmt::generate_redact_call(quote! { &#variant_name }, false, flags)
         } else {
             variant_name.into_token_stream()
         };
@@ -170,13 +164,21 @@ pub fn derive_redact(
         });
     }
 
+    // Generate the `__veil_env_is_redaction_enabled` function
+    // Used by the `environment-aware` feature
+    // See the `env` module
+    let __veil_env_is_redaction_enabled = fmt::__veil_env_is_redaction_enabled();
+
     Ok(quote! {
         impl ::std::fmt::Debug for #name_ident {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                #__veil_env_is_redaction_enabled
+
                 let debug_alternate = f.alternate();
                 match self {
                     #(Self::#variant_idents #variant_destructures => { #variant_bodies; },)*
                 }
+
                 Ok(())
             }
         }

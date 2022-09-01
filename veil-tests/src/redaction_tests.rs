@@ -4,7 +4,7 @@
 
 use veil::Redact;
 
-const SENSITIVE_DATA: &[&str] = &[
+pub const SENSITIVE_DATA: &[&str] = &[
     "William",
     "Assicurazioni",
     "039845734895",
@@ -12,7 +12,16 @@ const SENSITIVE_DATA: &[&str] = &[
     "SensitiveVariant",
 ];
 
-fn assert_no_sensitive_data<T: std::fmt::Debug>(data: T) {
+pub fn assert_has_sensitive_data<T: std::fmt::Debug>(data: T) {
+    for redacted in [format!("{data:?}"), format!("{data:#?}")] {
+        assert!(
+            SENSITIVE_DATA.iter().any(|sensitive| redacted.contains(sensitive)),
+            "{redacted:?} doesn't contain any sensitive data"
+        );
+    }
+}
+
+pub fn assert_no_sensitive_data<T: std::fmt::Debug>(data: T) {
     for redacted in [format!("{data:?}"), format!("{data:#?}")] {
         for sensitive in SENSITIVE_DATA {
             assert!(
