@@ -208,7 +208,11 @@
 //! veil = { version = "0.1", features = ["environment-aware"] }
 //! ```
 //!
+//! ## `VEIL_DISABLE_REDACTION`
+//!
 //! Redaction can be completely disabled by setting the `VEIL_DISABLE_REDACTION` environment variable. This is only checked once during the program lifetime for security purposes.
+//!
+//! ## `.veil.toml`
 //!
 //! Redaction can also be configured on a per-project basis using a `.veil.toml` file. Put this file in your crate or workspace root and Veil will read it at compile time.
 //!
