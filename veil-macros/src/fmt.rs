@@ -187,7 +187,7 @@ pub fn generate_redact_call(
 pub fn __veil_env_is_redaction_enabled() -> proc_macro2::TokenStream {
     if cfg!(feature = "environment-aware") {
         // Generate a function that returns whether redaction is enabled based on the environment.
-        // Hopefully, the optimiser will deduplicate this function in the compiled binary, since it's always the same.
+        // The compiler will be able to deduplicate the function, so we won't be generating hundreds of copies of it in the final binary.
         quote! { ::veil::private::env_is_redaction_enabled!(); }
     } else {
         proc_macro2::TokenStream::default()
