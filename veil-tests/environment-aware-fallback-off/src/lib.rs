@@ -1,7 +1,7 @@
 #![cfg_attr(not(test), allow(unused))]
 
 use veil::Redact;
-use veil_tests::{SENSITIVE_DATA, assert_has_sensitive_data};
+use veil_tests::{assert_has_sensitive_data, SENSITIVE_DATA};
 
 #[derive(Redact)]
 #[redact(all, partial)]

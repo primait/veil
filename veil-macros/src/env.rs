@@ -49,7 +49,9 @@ struct FallbackRedactConfig {
 }
 impl Default for FallbackRedactConfig {
     fn default() -> Self {
-        Self { redact: FallbackBehavior::Redact(true) }
+        Self {
+            redact: FallbackBehavior::Redact(true),
+        }
     }
 }
 
@@ -92,7 +94,9 @@ impl VeilConfig {
         // Ensure the fallback is configured correctly.
         if let FallbackBehavior::Panic(value) = &config.fallback.redact {
             if value != "panic" {
-                return Err(VeilConfigError::Custom("fallback redaction behavior must be \"panic\"".to_string()));
+                return Err(VeilConfigError::Custom(
+                    "fallback redaction behavior must be \"panic\"".to_string(),
+                ));
             }
         }
 
@@ -205,7 +209,8 @@ pub fn env_is_redaction_enabled(input: TokenStream) -> TokenStream {
             fn __veil_env_is_redaction_enabled() -> bool {
                 #fallback
             }
-        }.into()
+        }
+        .into()
     } else {
         quote! {
             #[inline(never)]
@@ -213,6 +218,7 @@ pub fn env_is_redaction_enabled(input: TokenStream) -> TokenStream {
                 #(#env)*
                 #fallback
             }
-        }.into()
+        }
+        .into()
     }
 }

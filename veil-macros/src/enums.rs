@@ -1,4 +1,7 @@
-use crate::{flags::FieldFlags, fmt::{FormatData, self}};
+use crate::{
+    flags::FieldFlags,
+    fmt::{self, FormatData},
+};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::spanned::Spanned;

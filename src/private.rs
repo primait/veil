@@ -107,7 +107,11 @@ impl RedactFlags {
     }
 }
 
-pub fn redact(this: &dyn Debug, flags: RedactFlags, #[cfg(feature = "environment-aware")] env_is_redaction_enabled: bool) -> DisplayDebug {
+pub fn redact(
+    this: &dyn Debug,
+    flags: RedactFlags,
+    #[cfg(feature = "environment-aware")] env_is_redaction_enabled: bool,
+) -> DisplayDebug {
     let mut redacted = String::new();
 
     #[cfg(feature = "environment-aware")]
