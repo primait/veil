@@ -224,10 +224,10 @@
 //!
 //! ```toml
 //! [env.APP_ENV]
-//! redact = ["production", "staging"] # redact data if APP_ENV is set to any of these values
-//! skip-redact = ["dev", "qa"] # SKIP redacting data if APP_ENV is set to any of these values
+//! redact = ["production", "staging"] # redact data if "APP_ENV" is set to any of these values
+//! skip-redact = ["dev", "qa"] # SKIP redacting data if "APP_ENV" is set to any of these values
 //!
-//! ## If APP_ENV isn't set or isn't recognised...
+//! ## If "APP_ENV" isn't set or isn't recognised...
 //! [fallback]
 //! redact = true # do redact data (default)
 //! ## OR
