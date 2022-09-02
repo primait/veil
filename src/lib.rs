@@ -13,11 +13,11 @@
 //!
 //! Modifiers can be applied to control how the field is redacted:
 //!
-//! | **Modifier**                   |   | **Effects**                                                                                                                                                                       |   | **Default**                                   |
-//! |--------------------------------|---|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|-----------------------------------------------|
-//! | `#[redact(partial)]`           |   | If the string is long enough, a small part of the<br>beginning and end will be exposed.                                                                                           |   | Disabled. The entire string will be redacted. |
-//! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                            |   | `'*'`                                         |
-//! | `#[redact(fixed = <integer>)]` |   | If this modifier is present, the length and contents of<br>the string are completely ignored and the string will always<br>be redacted as a fixed number of redaction characters. |   | Disabled.                                     |
+//! | **Modifier**                   |   | **Effects**                                                                                                                                                                          |   | **Default**                                   |
+//! |--------------------------------|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|-----------------------------------------------|
+//! | `#[redact(partial)]`           |   | If the string is long enough, a small part of the<br>beginning and end will be exposed. If the string is too short to securely expose a portion of it, it will be redacted entirely. |   | Disabled. The entire string will be redacted. |
+//! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                               |   | `'*'`                                         |
+//! | `#[redact(fixed = <integer>)]` |   | If this modifier is present, the length and contents of<br>the string are completely ignored and the string will always<br>be redacted as a fixed number of redaction characters.    |   | Disabled.                                     |
 //!
 //! # Enum Variants
 //!
