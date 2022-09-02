@@ -2,7 +2,7 @@
 //!
 //! The purpose of this macro is to allow for easy, configurable and efficient redaction of sensitive data in structs and enum variants.
 //! This can be used to hide sensitive data in logs or anywhere where personal data should not be exposed or stored.
-//! 
+//!
 //! Redaction is unicode-aware. Only alphanumeric characters are redacted. Whitespace, symbols and other characters are left as-is.
 //!
 //! # Controlling Redaction
@@ -19,30 +19,104 @@
 //! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                               |   | `'*'`                                         |
 //! | `#[redact(fixed = <integer>)]` |   | If this modifier is present, the length and contents of<br>the string are completely ignored and the string will always<br>be redacted as a fixed number of redaction characters.    |   | Disabled.                                     |
 //!
-//! # Enum Variants
+//! # Redacting All Fields in a Struct or Enum Variant
+//!
+//! You can also quickly redact all fields in a struct using the `#[redact(all)]` modifier.
+//! 
+//! **This also works on enum variants** and will redact all struct/tuple fields in the variant.
+//!
+//! The above modifiers are also accepted as configuration options when using this modifier, for example: `#[redact(all, partial, with = 'X')]`
+//!
+//! This modifier acts as a default for all fields in the struct or enum variant. You can still individually control each field's redaction using the `#[redact(...)]` modifier.
+//!
+//! Finally, you can also manually turn off redaction for a field by using the `#[redact(skip)]` modifier. This is of course only allowed when the field is affected by `#[redact(all)]`.
+//!
+//! For example:
+//!
+//! ```rust
+//! #[derive(Redact)]
+//! #[redact(all, partial, with = 'X')]
+//! struct Foo {
+//!     redact_me: String,
+//!     also_redact_me: String,
+//!
+//!     #[redact(skip)]
+//!     do_not_redact_me: String,
+//! }
+//! ```
+//!
+//! Is equivalent to:
+//!
+//! ```rust
+//! #[derive(Redact)]
+//! struct Foo {
+//!     #[redact(partial, with = 'X')]
+//!     redact_me: String,
+//!
+//!     #[redact(partial, with = 'X')]
+//!     also_redact_me: String,
+//!
+//!     do_not_redact_me: String,
+//! }
+//! ```
+//!
+//! # Redacting Enum Variants
 //!
 //! If the variant names of an enum themselves are sensitive data, you can use the `#[redact(variant)]` modifier to redact the name of the variant.
 //!
 //! All the normal modifiers can be used on a redacted variant name as well.
+//! 
+//! `#[redact(all)]` on enum variants will redact all struct/tuple fields in the variant.
 //!
 //! If you want to mix `#[redact(all)]` and `#[redact(variant)]` on the same enum (to redact the variant's name and also all of its struct fields),
-//! you can simply provide both attributes separately on the variant and this will work as expected.
+//! you can simply provide both attributes separately on the variant and this will work as expected. For example:
 //!
-//! # Tips & Tricks
+//! ```rust
+//! #[derive(Redact)]
+//! enum Foo {
+//!     #[redact(all, with = 'X')] // redact all fields (`baz`, `qux`, ...) with 'X' as the redaction character
+//!     #[redact(variant, partial)] // also redact the variant name, but only partially
+//!     Bar {
+//!         baz: String,
+//!         qux: String,
+//!     }
+//! }
+//! ```
+//! 
+//! ## Redacting All Variants in an Enum
+//! 
+//! You can also quickly redact all variants in an enum using the `#[redact(all, variant)]` modifier.
+//! 
+//! For example:
+//! 
+//! ```rust
+//! #[derive(Redact)]
+//! #[redact(all, variant, partial, with = 'X')]
+//! enum Foo {
+//!     Bar,
+//!     Baz,
+//! 
+//!     #[redact(skip)]
+//!     Qux,
+//! }
+//! ```
+//! 
+//! Is equivalent to:
+//! 
+//! ```rust
+//! #[derive(Redact)]
+//! enum Foo {
+//!     #[redact(variant, partial, with = 'X')]
+//!     Bar,
+//! 
+//!     #[redact(variant, partial, with = 'X')]
+//!     Baz,
+//! 
+//!     Qux,
+//! }
+//! ```
 //!
-//! ## Redacting all fields
-//!
-//! You can also quickly redact all fields in a struct using the `#[redact(all)]` modifier.
-//!
-//! This modifier can be applied to **structs** and **enum variants**.
-//!
-//! The above modifiers are also accepted as configuration options when using this modifier, for example: `#[redact(all, partial, with = 'X')]`
-//!
-//! This modifier acts as a default for all fields in the struct or enum variant. You can still individually control each field's redaction using the `#[redact]` modifier.
-//!
-//! Finally, you can also manually turn off redaction for a field by using the `#[redact(skip)]` modifier. This is of course only allowed when the field is affected by `#[redact(all)]`, as fields are not redacted by default.
-//!
-//! ## Specializations
+//! # Specializations
 //!
 //! Currently, we specialize the implementation for the types below.
 //!
@@ -52,7 +126,7 @@
 //! |-------------|---|---------------------------------------------------------|
 //! | `Option<T>` |   | The data inside a `Some(...)` variant will be redacted. |
 //!
-//! # Examples
+//! # Full Example
 //!
 //! ```rust
 //! # type Uuid = ();
@@ -124,9 +198,9 @@
 //!     },
 //! }
 //! ```
-//! 
+//!
 //! # Limitations
-//! 
+//!
 //! Currently, this macro only supports [`std::fmt::Debug`] formatting with no modifiers (`{:?}`) or the "alternate" modifier (`{:#?}`).
 //! Modifiers like padding, alignment, etc. are not supported as the Rust standard library does not expose any of this behaviour for us.
 //!
@@ -134,7 +208,7 @@
 //!
 //! This derive macro does **NOT** implement [`std::fmt::Display`]. If you want to implement it, you can do so manually.
 //!
-//! [`std::fmt::Display`] should NOT be masked. It is meant to be human-readable, and also has a snowball effect on [`ToString`]
+//! [`std::fmt::Display`] should NOT be redacted. It is meant to be human-readable, and also has a snowball effect on [`ToString`]
 //! as [`std::fmt::Display`] automatically implements it, leading to confusing and unexpected behaviour.
 
 pub use veil_macros::Redact;
