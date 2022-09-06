@@ -103,17 +103,6 @@ impl FormatData<'_> {
 
                     // Specialization for Option<T>
                     let is_option = is_ty_option(&field.ty);
-<<<<<<< HEAD
-
-                    field_bodies.push(quote! {
-                        ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
-                            debug_alternate,
-                            is_option: #is_option,
-                            #field_flags
-                        })
-                    });
-=======
->>>>>>> 0884330 (Add redaction control based on environment variables)
 
                     field_bodies.push(generate_redact_call(field_accessor, is_option, &field_flags));
                     continue;
