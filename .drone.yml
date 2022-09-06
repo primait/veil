@@ -261,9 +261,3 @@ trigger:
 depends_on:
 - default
 - build-production
-
----
-kind: signature
-hmac: cec8a64e430b6ea8917086556797fb01c5189aaebc03f9d0a049768685ed6df8
-
-...
