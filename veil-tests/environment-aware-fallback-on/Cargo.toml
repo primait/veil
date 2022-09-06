@@ -1,0 +1,9 @@
+[package]
+name = "veil-tests-environment-aware-fallback-on"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+veil = { path = "../../", features = ["environment-aware"] }
+veil-tests = { path = "../" }
