@@ -62,6 +62,7 @@ impl FieldFlags {
                     // We'll throw an error if it is.
                     let valid_skip_flags = FieldFlags {
                         skip: true,
+                        variant: flags.variant,
                         ..Default::default()
                     };
                     if flags != valid_skip_flags {

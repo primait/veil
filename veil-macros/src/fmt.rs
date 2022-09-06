@@ -97,31 +97,16 @@ impl FormatData<'_> {
 
             // If we have field flags...
             if let Some(field_flags) = field_flags {
-                // And we actually want to redact this field...
-                if !field_flags.skip {
-                    // Redact it!
+                // Redact it!
 
-                    // Specialization for Option<T>
-                    let is_option = is_ty_option(&field.ty);
-<<<<<<< HEAD
+                // Specialization for Option<T>
+                let is_option = is_ty_option(&field.ty);
 
-                    field_bodies.push(quote! {
-                        ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
-                            debug_alternate,
-                            is_option: #is_option,
-                            #field_flags
-                        })
-                    });
-=======
->>>>>>> 0884330 (Add redaction control based on environment variables)
-
-                    field_bodies.push(generate_redact_call(field_accessor, is_option, &field_flags));
-                    continue;
-                }
+                field_bodies.push(generate_redact_call(field_accessor, is_option, &field_flags));
+            } else {
+                // Otherwise, just use the normal `Debug` implementation.
+                field_bodies.push(quote! { #field_accessor });
             }
-
-            // Otherwise, just use the normal `Debug` implementation.
-            field_bodies.push(quote! { #field_accessor });
         }
 
         // Generate the `__veil_env_is_redaction_enabled` function
@@ -165,21 +150,25 @@ pub fn generate_redact_call(
     is_option: bool,
     field_flags: &FieldFlags,
 ) -> proc_macro2::TokenStream {
-    // Environment awareness (we assume that we injected the `__veil_env_is_redaction_enabled` function earlier)
-    let env_is_redaction_enabled = if cfg!(feature = "environment-aware") {
+    if !field_flags.skip {
+        // Environment awareness (we assume that we injected the `__veil_env_is_redaction_enabled` function earlier)
+        let env_is_redaction_enabled = if cfg!(feature = "environment-aware") {
+            quote! {
+                , ::veil::private::env_is_redaction_enabled().unwrap_or_else(__veil_env_is_redaction_enabled)
+            }
+        } else {
+            proc_macro2::TokenStream::default()
+        };
+
         quote! {
-            , ::veil::private::env_is_redaction_enabled().unwrap_or_else(__veil_env_is_redaction_enabled)
+            ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
+                debug_alternate,
+                is_option: #is_option,
+                #field_flags
+            } #env_is_redaction_enabled)
         }
     } else {
-        proc_macro2::TokenStream::default()
-    };
-
-    quote! {
-        ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
-            debug_alternate,
-            is_option: #is_option,
-            #field_flags
-        } #env_is_redaction_enabled)
+        field_accessor
     }
 }
 

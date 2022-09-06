@@ -22,7 +22,7 @@
 //! # Redacting All Fields in a Struct or Enum Variant
 //!
 //! You can also quickly redact all fields in a struct using the `#[redact(all)]` modifier.
-//! 
+//!
 //! **This also works on enum variants** and will redact all struct/tuple fields in the variant.
 //!
 //! The above modifiers are also accepted as configuration options when using this modifier, for example: `#[redact(all, partial, with = 'X')]`
@@ -34,6 +34,7 @@
 //! For example:
 //!
 //! ```rust
+//! # use veil_macros::Redact;
 //! #[derive(Redact)]
 //! #[redact(all, partial, with = 'X')]
 //! struct Foo {
@@ -48,6 +49,7 @@
 //! Is equivalent to:
 //!
 //! ```rust
+//! # use veil_macros::Redact;
 //! #[derive(Redact)]
 //! struct Foo {
 //!     #[redact(partial, with = 'X')]
@@ -65,13 +67,14 @@
 //! If the variant names of an enum themselves are sensitive data, you can use the `#[redact(variant)]` modifier to redact the name of the variant.
 //!
 //! All the normal modifiers can be used on a redacted variant name as well.
-//! 
+//!
 //! `#[redact(all)]` on enum variants will redact all struct/tuple fields in the variant.
 //!
 //! If you want to mix `#[redact(all)]` and `#[redact(variant)]` on the same enum (to redact the variant's name and also all of its struct fields),
 //! you can simply provide both attributes separately on the variant and this will work as expected. For example:
 //!
 //! ```rust
+//! # use veil_macros::Redact;
 //! #[derive(Redact)]
 //! enum Foo {
 //!     #[redact(all, with = 'X')] // redact all fields (`baz`, `qux`, ...) with 'X' as the redaction character
@@ -82,36 +85,38 @@
 //!     }
 //! }
 //! ```
-//! 
+//!
 //! ## Redacting All Variants in an Enum
-//! 
+//!
 //! You can also quickly redact all variants in an enum using the `#[redact(all, variant)]` modifier.
-//! 
+//!
 //! For example:
-//! 
+//!
 //! ```rust
+//! # use veil_macros::Redact;
 //! #[derive(Redact)]
 //! #[redact(all, variant, partial, with = 'X')]
 //! enum Foo {
 //!     Bar,
 //!     Baz,
-//! 
-//!     #[redact(skip)]
+//!
+//!     #[redact(variant, skip)]
 //!     Qux,
 //! }
 //! ```
-//! 
+//!
 //! Is equivalent to:
-//! 
+//!
 //! ```rust
+//! # use veil_macros::Redact;
 //! #[derive(Redact)]
 //! enum Foo {
 //!     #[redact(variant, partial, with = 'X')]
 //!     Bar,
-//! 
+//!
 //!     #[redact(variant, partial, with = 'X')]
 //!     Baz,
-//! 
+//!
 //!     Qux,
 //! }
 //! ```
