@@ -160,16 +160,12 @@ pub fn derive_redact(
         };
 
         variant_bodies.push(match &variant.fields {
-            syn::Fields::Named(named) => FormatData::FieldsNamed(named).impl_debug(
-                variant_name,
-                flags.all_fields_flags,
-                false,
-            )?,
-            syn::Fields::Unnamed(unnamed) => FormatData::FieldsUnnamed(unnamed).impl_debug(
-                variant_name,
-                flags.all_fields_flags,
-                false,
-            )?,
+            syn::Fields::Named(named) => {
+                FormatData::FieldsNamed(named).impl_debug(variant_name, flags.all_fields_flags, false)?
+            }
+            syn::Fields::Unnamed(unnamed) => {
+                FormatData::FieldsUnnamed(unnamed).impl_debug(variant_name, flags.all_fields_flags, false)?
+            }
             syn::Fields::Unit => quote! { write!(f, "{:?}", #variant_name)? },
         });
     }

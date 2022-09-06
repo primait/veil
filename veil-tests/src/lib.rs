@@ -52,10 +52,10 @@ struct RedactAll {
 #[redact(all, partial, with = 'X')]
 struct RedactAllWithFlags {
     field: String,
-    
+
     #[redact(skip)]
     field2: String,
-    
+
     field3: String,
 }
 

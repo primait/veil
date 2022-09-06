@@ -46,9 +46,7 @@ impl FormatData<'_> {
     ) -> Result<proc_macro2::TokenStream, syn::Error> {
         let fields = match self {
             Self::FieldsNamed(syn::FieldsNamed { named: fields, .. })
-            | Self::FieldsUnnamed(syn::FieldsUnnamed {
-                unnamed: fields, ..
-            }) => fields,
+            | Self::FieldsUnnamed(syn::FieldsUnnamed { unnamed: fields, .. }) => fields,
         };
 
         let mut field_bodies = Vec::with_capacity(fields.len());
@@ -105,7 +103,7 @@ impl FormatData<'_> {
 
                     // Specialization for Option<T>
                     let is_option = is_ty_option(&field.ty);
-        
+
                     field_bodies.push(quote! {
                         ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
                             debug_alternate,
@@ -124,10 +122,8 @@ impl FormatData<'_> {
 
         Ok(match self {
             Self::FieldsNamed(syn::FieldsNamed { named, .. }) => {
-                let field_names = named
-                    .iter()
-                    .map(|field| field.ident.as_ref().unwrap().to_string());
-                
+                let field_names = named.iter().map(|field| field.ident.as_ref().unwrap().to_string());
+
                 quote! {
                     f.debug_struct(&#name.as_ref())
                     #(
