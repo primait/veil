@@ -71,7 +71,7 @@ steps:
 - name: cargo-format
   image: prima/veil.rs-ci:${DRONE_COMMIT}
   commands:
-  - cargo make --profile drone format-ci
+  - cargo make --no-workspace --profile drone format-ci
   environment:
     CARGO_HOME: /drone/src/.cargo
   depends_on:
@@ -80,7 +80,7 @@ steps:
 - name: cargo-clippy-ci
   image: prima/veil.rs-ci:${DRONE_COMMIT}
   commands:
-  - cargo make --profile drone clippy-ci
+  - cargo make --no-workspace --profile drone clippy-ci
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -90,7 +90,7 @@ steps:
 - name: cargo-test
   image: prima/veil.rs-ci:${DRONE_COMMIT}
   commands:
-  - cargo make --profile drone test
+  - cargo make --no-workspace --profile drone test
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -101,7 +101,7 @@ steps:
 - name: cargo-build
   image: prima/veil.rs-ci:${DRONE_COMMIT}
   commands:
-  - cargo make --profile drone build-ci
+  - cargo make --no-workspace --profile drone build-ci
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -115,7 +115,7 @@ steps:
 - name: cache-cleanup
   image: prima/veil.rs-ci:${DRONE_COMMIT}
   commands:
-  - cargo make --profile drone cache-cleanup
+  - cargo make --no-workspace --profile drone cache-cleanup
   when:
     branch:
     - master
