@@ -83,10 +83,10 @@ enum CreditCardIssuer {
     },
 }
 
-#[derive(Redact, Default)]
+#[derive(Redact)]
 #[redact(all, variant, partial)]
 enum Country {
-    #[default] // to test mixing attributes works ok
+    #[doc = "hello world!"] // to test mixing attributes works ok
     #[redact(variant)]
     UnitedKingdom,
     Italy,
