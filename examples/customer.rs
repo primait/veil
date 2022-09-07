@@ -18,11 +18,14 @@ pub struct Customer {
 }
 
 fn main() {
-    println!("{:#?}", Customer {
-        id: 1,
-        first_name: "John".to_string(),
-        last_name: "Doe".to_string(),
-        email: "johndoe@example.com".to_string(),
-        age: 30,
-    });
+    println!(
+        "{:#?}",
+        Customer {
+            id: 1,
+            first_name: "John".to_string(),
+            last_name: "Doe".to_string(),
+            email: "johndoe@example.com".to_string(),
+            age: 30,
+        }
+    );
 }
