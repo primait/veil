@@ -1,6 +1,7 @@
 use crate::{
     flags::FieldFlags,
     fmt::{self, FormatData},
+    UnusedDiagnostic,
 };
 use proc_macro::TokenStream;
 use quote::ToTokens;
@@ -12,10 +13,11 @@ struct EnumVariantFieldFlags {
     all_fields_flags: Option<FieldFlags>,
 }
 
-pub fn derive_redact(
+pub(super) fn derive_redact(
     e: syn::DataEnum,
     attrs: Vec<syn::Attribute>,
     name_ident: syn::Ident,
+    unused: &mut UnusedDiagnostic,
 ) -> Result<TokenStream, syn::Error> {
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
     let top_level_flags = match FieldFlags::extract::<1>(&attrs, false)? {
@@ -151,17 +153,17 @@ pub fn derive_redact(
         // Variant name redacting
         let variant_name = variant.ident.to_string();
         let variant_name = if let Some(flags) = &flags.variant_flags {
-            fmt::generate_redact_call(quote! { &#variant_name }, false, flags)
+            fmt::generate_redact_call(quote! { &#variant_name }, false, flags, unused)
         } else {
             variant_name.into_token_stream()
         };
 
         variant_bodies.push(match &variant.fields {
             syn::Fields::Named(named) => {
-                FormatData::FieldsNamed(named).impl_debug(variant_name, flags.all_fields_flags, false)?
+                FormatData::FieldsNamed(named).impl_debug(variant_name, flags.all_fields_flags, false, unused)?
             }
             syn::Fields::Unnamed(unnamed) => {
-                FormatData::FieldsUnnamed(unnamed).impl_debug(variant_name, flags.all_fields_flags, false)?
+                FormatData::FieldsUnnamed(unnamed).impl_debug(variant_name, flags.all_fields_flags, false, unused)?
             }
             syn::Fields::Unit => quote! { write!(f, "{:?}", #variant_name)? },
         });
