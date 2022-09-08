@@ -45,7 +45,7 @@ pub(super) fn derive_redact(
                 if flags.all && flags.variant {
                     // #[redact(all, variant, ...)]
                     return Err(syn::Error::new(
-                        attrs[0].span(),
+                        variant.attrs[0].span(),
                         "`#[redact(all, variant, ...)]` is invalid here, split into two separate attributes instead to apply redacting options to the variant name or all fields respectively",
                     ));
                 } else if flags.all {
