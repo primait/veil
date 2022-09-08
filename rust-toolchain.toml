@@ -1,2 +1,3 @@
 [toolchain]
 channel = "1.61" # If you change this, you also need to change the Rust image used in the Dockerfile
+profile = "default" # Needed for rustfmt and clippy
