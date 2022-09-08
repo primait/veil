@@ -57,14 +57,16 @@ pub fn derive_redact(item: TokenStream) -> TokenStream {
         syn::Data::Union(_) => Err(syn::Error::new(item_span, "this trait cannot be derived for unions")),
     };
 
-    if unused.should_throw_err() {
-        return syn::Error::new(
-            item_span,
-            "`#[derive(Redact)]` does nothing by default, you must specify at least one field to redact. You should `#[derive(Debug)]` instead if this is intentional",
-        )
-        .into_compile_error()
-        .into();
-    }
+    let result = result.and_then(|tokens| {
+        if unused.should_throw_err() {
+            Err(syn::Error::new(
+                item_span,
+                "`#[derive(Redact)]` does nothing by default, you must specify at least one field to redact. You should `#[derive(Debug)]` instead if this is intentional",
+            ))
+        } else {
+            Ok(tokens)
+        }
+    });
 
     match result {
         Ok(tokens) => tokens,
