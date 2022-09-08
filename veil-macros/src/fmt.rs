@@ -1,4 +1,4 @@
-use crate::flags::FieldFlags;
+use crate::{flags::FieldFlags, UnusedDiagnostic};
 use quote::ToTokens;
 use syn::spanned::Spanned;
 
@@ -25,7 +25,7 @@ fn is_ty_option(ty: &syn::Type) -> bool {
     }
 }
 
-pub enum FormatData<'a> {
+pub(crate) enum FormatData<'a> {
     /// Structs, struct enum variants
     FieldsNamed(&'a syn::FieldsNamed),
 
@@ -38,11 +38,12 @@ impl FormatData<'_> {
     /// `all_field_flags`: `FieldFlags` that apply to all fields, if set
     ///
     /// `with_self`: prepends `self.` to the field name for accessing struct fields
-    pub fn impl_debug(
+    pub(crate) fn impl_debug(
         self,
         name: proc_macro2::TokenStream,
         all_fields_flags: Option<FieldFlags>,
         with_self: bool,
+        unused: &mut UnusedDiagnostic,
     ) -> Result<proc_macro2::TokenStream, syn::Error> {
         let fields = match self {
             Self::FieldsNamed(syn::FieldsNamed { named: fields, .. })
@@ -107,7 +108,7 @@ impl FormatData<'_> {
                 // Specialization for Option<T>
                 let is_option = is_ty_option(&field.ty);
 
-                field_bodies.push(generate_redact_call(field_accessor, is_option, &field_flags));
+                field_bodies.push(generate_redact_call(field_accessor, is_option, &field_flags, unused));
             } else {
                 // Otherwise, just use the normal `Debug` implementation.
                 field_bodies.push(quote! { #field_accessor });
@@ -150,12 +151,16 @@ impl FormatData<'_> {
 }
 
 /// Generates a call to `veil::private::redact`
-pub fn generate_redact_call(
+pub(crate) fn generate_redact_call(
     field_accessor: proc_macro2::TokenStream,
     is_option: bool,
     field_flags: &FieldFlags,
+    unused: &mut UnusedDiagnostic,
 ) -> proc_macro2::TokenStream {
     if !field_flags.skip {
+        // This is the one place where we actually track whether the derive macro had any effect! Nice.
+        unused.redacted_something();
+
         // Environment awareness (we assume that we injected the `__veil_env_is_redaction_enabled` function earlier)
         let env_is_redaction_enabled = if cfg!(feature = "environment-aware") {
             quote! {

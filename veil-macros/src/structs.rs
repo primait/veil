@@ -1,12 +1,13 @@
-use crate::{flags::FieldFlags, fmt::FormatData};
+use crate::{flags::FieldFlags, fmt::FormatData, UnusedDiagnostic};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::spanned::Spanned;
 
-pub fn derive_redact(
+pub(super) fn derive_redact(
     s: syn::DataStruct,
     attrs: Vec<syn::Attribute>,
     name_ident: syn::Ident,
+    unused: &mut UnusedDiagnostic,
 ) -> Result<TokenStream, syn::Error> {
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
     let top_level_flags = match attrs.len() {
@@ -43,10 +44,10 @@ pub fn derive_redact(
     // Generate the body of the std::fmt::Debug implementation
     let impl_debug = match &s.fields {
         syn::Fields::Named(named) => {
-            FormatData::FieldsNamed(named).impl_debug(name_ident_str, top_level_flags, true)?
+            FormatData::FieldsNamed(named).impl_debug(name_ident_str, top_level_flags, true, unused)?
         }
         syn::Fields::Unnamed(unnamed) => {
-            FormatData::FieldsUnnamed(unnamed).impl_debug(name_ident_str, top_level_flags, true)?
+            FormatData::FieldsUnnamed(unnamed).impl_debug(name_ident_str, top_level_flags, true, unused)?
         }
         syn::Fields::Unit => {
             return Err(syn::Error::new(
