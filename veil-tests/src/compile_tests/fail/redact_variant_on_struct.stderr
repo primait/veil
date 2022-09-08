@@ -2,4 +2,4 @@ error: `#[redact(variant, ...)]` is invalid for structs
  --> src/compile_tests/fail/redact_variant_on_struct.rs:4:1
   |
 4 | #[redact(all, variant)]
-  | ^^^^^^^^^^^^^^^^^^^^^^^
+  | ^

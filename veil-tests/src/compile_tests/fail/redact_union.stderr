@@ -1,8 +1,5 @@
 error: this trait cannot be derived for unions
  --> src/compile_tests/fail/redact_union.rs:4:1
   |
-4 | / union Foo {
-5 | |     bar: u32,
-6 | |     baz: u64
-7 | | }
-  | |_^
+4 | union Foo {
+  | ^^^^^

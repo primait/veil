@@ -1,21 +1,11 @@
 error: `#[derive(Redact)]` does nothing by default, you must specify at least one field to redact. You should `#[derive(Debug)]` instead if this is intentional
  --> src/compile_tests/fail/redact_unused.rs:4:1
   |
-4 | / #[redact(all)]
-5 | | struct Foos {
-6 | |     #[redact(skip)]
-7 | |     baz: String,
-8 | | }
-  | |_^
+4 | #[redact(all)]
+  | ^
 
 error: `#[derive(Redact)]` does nothing by default, you must specify at least one field to redact. You should `#[derive(Debug)]` instead if this is intentional
   --> src/compile_tests/fail/redact_unused.rs:11:1
    |
-11 | / #[redact(all, variant)]
-12 | | enum Fooe {
-13 | |     #[redact(skip, variant)]
-14 | |     #[redact(all)]
-...  |
-18 | |     }
-19 | | }
-   | |_^
+11 | #[redact(all, variant)]
+   | ^

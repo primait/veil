@@ -2,4 +2,4 @@ error: `#[redact(all, variant, ...)]` is invalid here, split into two separate a
  --> src/compile_tests/fail/redact_all_variant_on_variant.rs:5:5
   |
 5 |     #[redact(all, variant)]
-  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |     ^

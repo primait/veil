@@ -8,4 +8,4 @@ error: unit structs do not need redacting as they contain no data
  --> src/compile_tests/fail/redact_units.rs:8:5
   |
 8 |     #[redact(all)]
-  |     ^^^^^^^^^^^^^^
+  |     ^

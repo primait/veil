@@ -1,3 +1,4 @@
+# If you change this, you also need to change this in rust-toolchain.toml
 FROM rust:1.61
 
 WORKDIR /code
