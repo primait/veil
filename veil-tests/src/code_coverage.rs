@@ -1,14 +1,14 @@
 #[test]
 fn test_code_coverage_for_errors() {
+    // Build a report which shows test code coverage for the
+    // various syn::Error::new() calls throughout the macro's code.
+
     use std::{
         ffi::OsStr,
         num::NonZeroUsize,
         ops::Range,
         path::{Path, PathBuf},
     };
-
-    // Build a report which shows test code coverage for the
-    // various syn::Error::new() calls throughout the macro's code.
 
     struct ErrorMessage<'a, 'b> {
         message: String,
