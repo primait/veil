@@ -80,6 +80,11 @@ impl FormatData<'_> {
                                 field.attrs[0].span(),
                                 "`#[redact(variant)]` is invalid for structs",
                             ));
+                        } else if flags.all {
+                            return Err(syn::Error::new(
+                                field.attrs[0].span(),
+                                "`#[redact(all)]` is invalid for struct fields",
+                            ));
                         } else {
                             Some(flags)
                         }
