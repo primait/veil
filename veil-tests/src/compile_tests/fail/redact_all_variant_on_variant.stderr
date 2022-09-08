@@ -1,0 +1,5 @@
+error: `#[redact(all, variant, ...)]` is invalid here, split into two separate attributes instead to apply redacting options to the variant name or all fields respectively
+ --> src/compile_tests/fail/redact_all_variant_on_variant.rs:5:5
+  |
+5 |     #[redact(all, variant)]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^

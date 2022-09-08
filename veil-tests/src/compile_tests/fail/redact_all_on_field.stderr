@@ -1,0 +1,11 @@
+error: `#[redact(all)]` is invalid for struct fields
+ --> src/compile_tests/fail/redact_all_on_field.rs:6:9
+  |
+6 |         #[redact(all)]
+  |         ^^^^^^^^^^^^^^
+
+error: `#[redact(all)]` is invalid for struct fields
+  --> src/compile_tests/fail/redact_all_on_field.rs:13:5
+   |
+13 |     #[redact(all)]
+   |     ^^^^^^^^^^^^^^

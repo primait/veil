@@ -1,0 +1,23 @@
+error: `#[redact(skip)]` is not allowed here
+ --> src/compile_tests/fail/redact_skip.rs:5:5
+  |
+5 |     #[redact(skip)]
+  |     ^^^^^^^^^^^^^^^
+
+error: `#[redact(skip)]` is not allowed here
+  --> src/compile_tests/fail/redact_skip.rs:11:5
+   |
+11 |     #[redact(skip)]
+   |     ^^^^^^^^^^^^^^^
+
+error: `#[redact(skip)]` is not allowed here
+  --> src/compile_tests/fail/redact_skip.rs:21:9
+   |
+21 |         #[redact(skip)]
+   |         ^^^^^^^^^^^^^^^
+
+error: `#[redact(skip)]` should not have any other modifiers present
+  --> src/compile_tests/fail/redact_skip.rs:29:5
+   |
+29 |     #[redact(skip, partial)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^

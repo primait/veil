@@ -1,0 +1,23 @@
+error: at least `#[redact(all)]` is required here to redact all struct fields
+ --> src/compile_tests/fail/redact_missing_all.rs:4:1
+  |
+4 | #[redact]
+  | ^^^^^^^^^
+
+error: at least `#[redact(all, variant)]` is required here to redact all variant names
+  --> src/compile_tests/fail/redact_missing_all.rs:10:1
+   |
+10 | #[redact]
+   | ^^^^^^^^^
+
+error: at least `#[redact(all, variant)]` is required here to redact all variant names
+  --> src/compile_tests/fail/redact_missing_all.rs:16:1
+   |
+16 | #[redact(variant)]
+   | ^^^^^^^^^^^^^^^^^^
+
+error: at least `#[redact(all, variant)]` is required here to redact all variant names
+  --> src/compile_tests/fail/redact_missing_all.rs:22:1
+   |
+22 | #[redact(all)]
+   | ^^^^^^^^^^^^^^

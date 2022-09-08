@@ -174,7 +174,7 @@ pub(super) fn derive_redact(
                 } else {
                     quote! { write!(f, "{:?}", #variant_name)? }
                 }
-            },
+            }
         });
     }
 

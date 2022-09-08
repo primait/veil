@@ -1,0 +1,51 @@
+error: only one `#[redact(...)]` attribute is allowed per field
+ --> src/compile_tests/fail/redact_too_many.rs:5:5
+  |
+5 | /     #[redact]
+6 | |     #[redact]
+7 | |     bar: String,
+  | |_______________^
+
+error: a `#[redact(variant, ...)]` is already present
+  --> src/compile_tests/fail/redact_too_many.rs:12:5
+   |
+12 | /     #[redact(variant)]
+13 | |     #[redact(variant)]
+14 | |     Bar,
+   | |_______^
+
+error: expected only one or zero `#[redact(all, ...)]` attributes
+  --> src/compile_tests/fail/redact_too_many.rs:19:1
+   |
+19 | #[redact(all)]
+   | ^^^^^^^^^^^^^^
+
+error: too many `#[redact(...)]` attributes specified
+  --> src/compile_tests/fail/redact_too_many.rs:26:1
+   |
+26 | #[redact(all, variant)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: too many `#[redact(...)]` attributes specified
+  --> src/compile_tests/fail/redact_too_many.rs:39:5
+   |
+39 |     #[redact(variant)]
+   |     ^^^^^^^^^^^^^^^^^^
+
+error: a `#[redact(all, ...)]` is already present
+  --> src/compile_tests/fail/redact_too_many.rs:48:5
+   |
+48 | /     #[redact(all)]
+49 | |     #[redact(all)]
+50 | |     Grault {
+51 | |         garply: String,
+52 | |     }
+   | |_____^
+
+error: a `#[redact(variant, ...)]` is already present
+  --> src/compile_tests/fail/redact_too_many.rs:57:5
+   |
+57 | /     #[redact(variant)]
+58 | |     #[redact(variant)]
+59 | |     Fred
+   | |________^

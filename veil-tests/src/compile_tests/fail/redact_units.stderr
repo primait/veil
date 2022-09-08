@@ -1,0 +1,11 @@
+error: unit structs do not need redacting as they contain no data, use `#[derive(Debug)]` instead
+ --> src/compile_tests/fail/redact_units.rs:4:8
+  |
+4 | struct Foos;
+  |        ^^^^
+
+error: unit structs do not need redacting as they contain no data
+ --> src/compile_tests/fail/redact_units.rs:8:5
+  |
+8 |     #[redact(all)]
+  |     ^^^^^^^^^^^^^^
