@@ -15,72 +15,28 @@ steps:
   environment:
     PLUGIN_DEPTH: 5
 
-- name: cache-restore
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - . /etc/profile.d/ecs-credentials-endpoint
-  - cache-restore
-  environment:
-    BUCKET_NAME: prima-ci-cache
-  volumes:
-  - name: ecs
-    path: /etc/profile.d/ecs-credentials-endpoint
-  - name: docker
-    path: /var/run/docker.sock
-  depends_on:
-  - git-clone
-
-- name: check-secrets
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - . /etc/profile.d/ecs-credentials-endpoint
-  - check-secrets-grants
-  volumes:
-  - name: ecs
-    path: /etc/profile.d/ecs-credentials-endpoint
-  depends_on:
-  - git-clone
-
-- name: check-public-docker-images
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - check-public-docker-images
-  depends_on:
-  - git-clone
-
-- name: build-image
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - sed -i 's/USER app/USER root/g' ./Dockerfile
-  - docker build -t prima/veil.rs-ci:${DRONE_COMMIT} ./
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  depends_on:
-  - cache-restore
-
 - name: cargo-deps
-  image: prima/veil.rs-ci:${DRONE_COMMIT}
+  image: rust:1.61
   commands:
   - cargo fetch
   environment:
     CARGO_HOME: /drone/src/.cargo
   depends_on:
-  - build-image
+  - git-clone
 
 - name: cargo-format
-  image: prima/veil.rs-ci:${DRONE_COMMIT}
+  image: rust:1.61
   commands:
-  - cargo make --no-workspace --profile drone format-ci
+  - cargo fmt --all -- --check
   environment:
     CARGO_HOME: /drone/src/.cargo
   depends_on:
   - cargo-deps
 
 - name: cargo-clippy-ci
-  image: prima/veil.rs-ci:${DRONE_COMMIT}
+  image: rust:1.61
   commands:
-  - cargo make --no-workspace --profile drone clippy-ci
+  - cargo clippy -- -D warnings && cargo clippy --features environment-aware -- -D warnings
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -88,9 +44,9 @@ steps:
   - cargo-format
 
 - name: cargo-test
-  image: prima/veil.rs-ci:${DRONE_COMMIT}
+  image: rust:1.61
   commands:
-  - cargo make --no-workspace --profile drone test
+  - cargo test --all && cargo test --all --features environment-aware
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -99,9 +55,9 @@ steps:
   - cargo-clippy-ci
 
 - name: cargo-build
-  image: prima/veil.rs-ci:${DRONE_COMMIT}
+  image: rust:1.61
   commands:
-  - cargo make --no-workspace --profile drone build-ci
+  - cargo build -j 2 --all-features
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -111,45 +67,6 @@ steps:
       - master
   depends_on:
   - cargo-test
-
-- name: cache-cleanup
-  image: prima/veil.rs-ci:${DRONE_COMMIT}
-  commands:
-  - cargo make --no-workspace --profile drone cache-cleanup
-  when:
-    branch:
-    - master
-  depends_on:
-  - cargo-build
-  - cargo-format
-  - cargo-clippy-ci
-  - cargo-test
-
-- name: cache-save
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - . /etc/profile.d/ecs-credentials-endpoint
-  - cache-save target
-  environment:
-    BUCKET_NAME: prima-ci-cache
-  volumes:
-  - name: ecs
-    path: /etc/profile.d/ecs-credentials-endpoint
-  - name: docker
-    path: /var/run/docker.sock
-  when:
-    branch:
-    - master
-  depends_on:
-  - cache-cleanup
-
-volumes:
-- name: docker
-  host:
-    path: /var/run/docker.sock
-- name: ecs
-  host:
-    path: /etc/profile.d/ecs-credentials-endpoint
 
 trigger:
   event:
@@ -172,34 +89,8 @@ steps:
   environment:
     PLUGIN_DEPTH: 5
 
-- name: cache-restore
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - . /etc/profile.d/ecs-credentials-endpoint
-  - cache-restore
-  environment:
-    BUCKET_NAME: prima-ci-cache
-  volumes:
-  - name: ecs
-    path: /etc/profile.d/ecs-credentials-endpoint
-  - name: docker
-    path: /var/run/docker.sock
-  depends_on:
-  - git-clone
-
-- name: build-image
-  image: public.ecr.aws/prima/drone-tools:1.21.3
-  commands:
-  - sed -i 's/USER app/USER root/g' ./Dockerfile
-  - docker build -t prima/veil.rs-ci:${DRONE_COMMIT} ./
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  depends_on:
-  - cache-restore
-
 #- name: build-production
-#  image: prima/veil.rs-ci:${DRONE_COMMIT}
+#  image: rust:1.61
 #  commands:
 #  - . /etc/profile.d/ecs-credentials-endpoint
 #  - ./deploy/build production
@@ -211,14 +102,6 @@ steps:
 #    path: /etc/profile.d/ecs-credentials-endpoint
 #  depends_on:
 #  - build-image
-
-volumes:
-- name: docker
-  host:
-    path: /var/run/docker.sock
-- name: ecs
-  host:
-    path: /etc/profile.d/ecs-credentials-endpoint
 
 trigger:
   event:
