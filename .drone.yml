@@ -36,7 +36,7 @@ steps:
 - name: cargo-clippy-ci
   image: rust:1.61
   commands:
-  - clippy -- -D warnings
+  - cargo clippy -- -D warnings && cargo clippy --features environment-aware -- -D warnings
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -46,24 +46,13 @@ steps:
 - name: cargo-test
   image: rust:1.61
   commands:
-  - cargo test --all
+  - cargo test --all && cargo test --all --features environment-aware
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
     CARGO_HTTP_CAINFO: ""
   depends_on:
   - cargo-clippy-ci
-
-- name: cargo-test environment-aware
-  image: rust:1.61
-  commands:
-  - cargo test --all --features=environment-aware
-  environment:
-    BUILD_ENV: dev
-    CARGO_HOME: /drone/src/.cargo
-    CARGO_HTTP_CAINFO: ""
-  depends_on:
-  - cargo-test
 
 - name: cargo-build
   image: rust:1.61
@@ -77,7 +66,7 @@ steps:
       exclude:
       - master
   depends_on:
-  - cargo-test environment-aware
+  - cargo-test
 
 trigger:
   event:
