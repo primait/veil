@@ -6,3 +6,8 @@ publish = false
 
 [dependencies]
 veil = { path = "../" }
+
+[dev-dependencies]
+trybuild = "1"
+regex = "1"
+walkdir = "2"

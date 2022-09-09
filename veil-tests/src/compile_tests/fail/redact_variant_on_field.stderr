@@ -1,0 +1,11 @@
+error: `#[redact(variant)]` is invalid for structs
+ --> src/compile_tests/fail/redact_variant_on_field.rs:5:5
+  |
+5 |     #[redact(variant)]
+  |     ^
+
+error: `#[redact(variant)]` is invalid for structs
+  --> src/compile_tests/fail/redact_variant_on_field.rs:12:9
+   |
+12 |         #[redact(variant)]
+   |         ^

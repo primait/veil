@@ -1,0 +1,11 @@
+error: `#[derive(Redact)]` does nothing by default, you must specify at least one field to redact. You should `#[derive(Debug)]` instead if this is intentional
+ --> src/compile_tests/fail/redact_unused.rs:4:1
+  |
+4 | #[redact(all)]
+  | ^
+
+error: `#[derive(Redact)]` does nothing by default, you must specify at least one field to redact. You should `#[derive(Debug)]` instead if this is intentional
+  --> src/compile_tests/fail/redact_unused.rs:11:1
+   |
+11 | #[redact(all, variant)]
+   | ^

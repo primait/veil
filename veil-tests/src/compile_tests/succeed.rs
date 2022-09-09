@@ -2,9 +2,6 @@
 
 #![allow(unused)]
 
-pub mod fail;
-pub mod succeed;
-
 use veil::*;
 
 #[derive(Redact)]

@@ -1,0 +1,5 @@
+error: this trait cannot be derived for unions
+ --> src/compile_tests/fail/redact_union.rs:4:1
+  |
+4 | union Foo {
+  | ^^^^^

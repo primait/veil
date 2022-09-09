@@ -45,7 +45,7 @@ impl FieldFlags {
         let mut head = 0;
 
         for attr in attrs {
-            if head > AMOUNT {
+            if head == AMOUNT {
                 return Err(syn::Error::new(
                     attr.span(),
                     "too many `#[redact(...)]` attributes specified",

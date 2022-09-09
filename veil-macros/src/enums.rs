@@ -45,7 +45,7 @@ pub(super) fn derive_redact(
                 if flags.all && flags.variant {
                     // #[redact(all, variant, ...)]
                     return Err(syn::Error::new(
-                        attrs[0].span(),
+                        variant.attrs[0].span(),
                         "`#[redact(all, variant, ...)]` is invalid here, split into two separate attributes instead to apply redacting options to the variant name or all fields respectively",
                     ));
                 } else if flags.all {
@@ -165,7 +165,16 @@ pub(super) fn derive_redact(
             syn::Fields::Unnamed(unnamed) => {
                 FormatData::FieldsUnnamed(unnamed).impl_debug(variant_name, flags.all_fields_flags, false, unused)?
             }
-            syn::Fields::Unit => quote! { write!(f, "{:?}", #variant_name)? },
+            syn::Fields::Unit => {
+                if flags.all_fields_flags.is_some() {
+                    return Err(syn::Error::new(
+                        variant.attrs[0].span(),
+                        "unit structs do not need redacting as they contain no data",
+                    ));
+                } else {
+                    quote! { write!(f, "{:?}", #variant_name)? }
+                }
+            }
         });
     }
 
