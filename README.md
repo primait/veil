@@ -85,3 +85,6 @@ enum InsuranceStatus {
     },
 }
 ```
+
+# Skip redacting data
+In testing environments it may be useful not to censor your logs. You can configure Veil to redact or skip redacting data based during runtime using the `set_debug_format` function. See this [example](examples/disable_redaction.rs)
