@@ -111,7 +111,8 @@ impl RedactFlags {
 pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
     let mut redacted = String::new();
 
-    if crate::toggle::get_debug_format().is_plaintext() {
+    #[cfg(feature = "toggle")]
+    if crate::toggle::get_redaction_behavior().is_plaintext() {
         return DisplayDebug(if flags.debug_alternate {
             format!("{:#?}", this)
         } else {

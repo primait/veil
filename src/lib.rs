@@ -218,7 +218,9 @@
 
 pub use veil_macros::Redact;
 
+#[cfg(feature = "toggle")]
 mod toggle;
+#[cfg(feature = "toggle")]
 pub use toggle::*;
 
 

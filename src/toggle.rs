@@ -3,49 +3,56 @@
 use once_cell::sync::OnceCell;
 /// Enum describing the behaviour of veil
 #[derive(Debug, Copy, Clone)]
-pub enum DebugFormat {
+pub enum RedactionBehavior {
     /// Redact the fields as normal
-    Redacted,
+    Redact,
     /// Print the fields as plaintext
     Plaintext,
 }
 
-impl DebugFormat {
-    pub fn is_redacted(&self) -> bool {
-        matches!(self, &DebugFormat::Redacted)
+impl RedactionBehavior {
+    pub fn is_redact(&self) -> bool {
+        matches!(self, &RedactionBehavior::Redact)
     }
 
     pub fn is_plaintext(&self) -> bool {
-        matches!(self, &DebugFormat::Plaintext)
+        matches!(self, &RedactionBehavior::Plaintext)
     }
 }
 
-static DEBUG_FORMAT: OnceCell<DebugFormat> = OnceCell::new();
+static DEBUG_FORMAT: OnceCell<RedactionBehavior> = OnceCell::new();
 
 /// Sets the formatting of the debug logs
 ///
 /// Should only be called once, preferrably at the top of main,
-/// before any calls to [`std::fmt::debug`] or [`get_debug_format`].
+/// before any calls to [`std::fmt::Debug`] or [`get_redaction_behavior`]
 ///
 /// If sucessfuly set the value returns Ok(()),
-/// otherwise returns Err with the current value.
-pub fn set_debug_format(v: DebugFormat) -> Result<(), DebugFormat> {
-    DEBUG_FORMAT.set(v)
+/// otherwise returns Err
+/// ```
+/// // If the environment variable DISABLE_REDACTION is set veil will not redact anything
+/// if let Ok(env) = std::env::var("APP_ENV") {
+///     if env == "dev" {
+///         veil::disable().unwrap();
+///     }
+/// }
+/// ```
+pub fn disable() -> Result<(), RedactionBehavior> {
+    DEBUG_FORMAT.set(RedactionBehavior::Plaintext)
 }
 
 /// Get the current debug format value
-pub fn get_debug_format() -> DebugFormat {
-    *DEBUG_FORMAT.get_or_init(|| DebugFormat::Redacted)
+pub(crate) fn get_redaction_behavior() -> RedactionBehavior {
+    *DEBUG_FORMAT.get_or_init(|| RedactionBehavior::Redact)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn debug_format_can_only_be_set_once() {
-        set_debug_format(DebugFormat::Redacted).unwrap();
-        assert!(get_debug_format().is_redacted());
-        set_debug_format(DebugFormat::Plaintext).unwrap_err();
-        assert!(get_debug_format().is_redacted());
+    fn redaction_cant_be_set_after_reading() {
+        assert!(get_redaction_behavior().is_redact());
+        disable().unwrap_err();
+        assert!(get_redaction_behavior().is_redact());
     }
 }
