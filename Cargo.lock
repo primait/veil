@@ -12,6 +12,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "disable-redaction-test"
+version = "0.1.0"
+dependencies = [
+ "veil",
+ "veil-tests",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

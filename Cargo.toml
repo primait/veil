@@ -7,7 +7,12 @@ license = "MIT"
 repository = "https://github.com/primait/veil"
 
 [workspace]
-members = ["veil-macros", "veil-tests"]
+members = ["veil-macros", "veil-tests"
+# Because those tests deal with global state we need to run them in a separate process. 
+# The easiest/only way to do this with the standard rust test harness is to put them in a
+# separate crate
+,"veil-tests/disable-redaction-test"
+]
 
 [dependencies]
 veil-macros = { path = "veil-macros" }
