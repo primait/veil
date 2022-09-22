@@ -147,3 +147,11 @@ fn test_sensitive_tuple_structs() {
         SENSITIVE_DATA[3],
     ));
 }
+
+#[test]
+fn test_veil_can_be_disabled() {
+    #[derive(Redact)]
+    struct SensitiveWrapper(#[redact] String);
+    veil::set_debug_format(veil::DebugFormat::Plaintext).ok();
+    assert_has_sensitive_data(SensitiveWrapper(SENSITIVE_DATA[0].to_string()));
+}

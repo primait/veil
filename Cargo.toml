@@ -11,3 +11,4 @@ members = ["veil-macros", "veil-tests"]
 
 [dependencies]
 veil-macros = { path = "veil-macros" }
+once_cell = "1.15.0"

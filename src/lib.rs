@@ -218,5 +218,9 @@
 
 pub use veil_macros::Redact;
 
+mod toggle;
+pub use toggle::*;
+
+
 #[doc(hidden)]
 pub mod private;

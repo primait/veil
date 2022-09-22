@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+
 #[repr(transparent)]
 pub struct DisplayDebug(String);
 impl std::fmt::Debug for DisplayDebug {
@@ -109,6 +110,14 @@ impl RedactFlags {
 
 pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
     let mut redacted = String::new();
+
+    if crate::toggle::get_debug_format().is_plaintext() {
+        return DisplayDebug(if flags.debug_alternate {
+            format!("{:#?}", this)
+        } else {
+            format!("{:?}", this)
+        });
+    }
 
     (|| {
         if flags.fixed > 0 {
