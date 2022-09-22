@@ -3,9 +3,6 @@ name = "veil-macros"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-environment-aware = ["lazy_static", "toml", "serde"]
-
 [lib]
 proc-macro = true
 
@@ -13,7 +10,3 @@ proc-macro = true
 syn = { version = "1", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
-
-lazy_static = { version = "1", optional = true }
-toml = { version = "0.5", optional = true }
-serde = { version = "1", features = ["derive"], optional = true }

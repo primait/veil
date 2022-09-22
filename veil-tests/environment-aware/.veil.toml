@@ -1,3 +1,0 @@
-[env.APP_ENV]
-skip-redact = ["dev", "qa"]
-redact = ["production", "staging"]

@@ -178,21 +178,13 @@ pub(super) fn derive_redact(
         });
     }
 
-    // Generate the `__veil_env_is_redaction_enabled` function
-    // Used by the `environment-aware` feature
-    // See the `env` module
-    let __veil_env_is_redaction_enabled = fmt::__veil_env_is_redaction_enabled();
-
     Ok(quote! {
         impl ::std::fmt::Debug for #name_ident {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                #__veil_env_is_redaction_enabled
-
                 let debug_alternate = f.alternate();
                 match self {
                     #(Self::#variant_idents #variant_destructures => { #variant_bodies; },)*
                 }
-
                 Ok(())
             }
         }

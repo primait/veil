@@ -115,18 +115,11 @@ impl FormatData<'_> {
             }
         }
 
-        // Generate the `__veil_env_is_redaction_enabled` function
-        // Used by the `environment-aware` feature
-        // See the `env` module
-        let __veil_env_is_redaction_enabled = __veil_env_is_redaction_enabled();
-
         Ok(match self {
             Self::FieldsNamed(syn::FieldsNamed { named, .. }) => {
                 let field_names = named.iter().map(|field| field.ident.as_ref().unwrap().to_string());
 
                 quote! {
-                    #__veil_env_is_redaction_enabled
-
                     f.debug_struct(&#name.as_ref())
                     #(
                         .field(#field_names, &#field_bodies)
@@ -137,8 +130,6 @@ impl FormatData<'_> {
 
             Self::FieldsUnnamed(syn::FieldsUnnamed { .. }) => {
                 quote! {
-                    #__veil_env_is_redaction_enabled
-
                     f.debug_tuple(&#name.as_ref())
                     #(
                         .field(&#field_bodies)
@@ -161,34 +152,14 @@ pub(crate) fn generate_redact_call(
         // This is the one place where we actually track whether the derive macro had any effect! Nice.
         unused.redacted_something();
 
-        // Environment awareness (we assume that we injected the `__veil_env_is_redaction_enabled` function earlier)
-        let env_is_redaction_enabled = if cfg!(feature = "environment-aware") {
-            quote! {
-                , ::veil::private::env_is_redaction_enabled().unwrap_or_else(__veil_env_is_redaction_enabled)
-            }
-        } else {
-            proc_macro2::TokenStream::default()
-        };
-
         quote! {
             ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
                 debug_alternate,
                 is_option: #is_option,
                 #field_flags
-            } #env_is_redaction_enabled)
+            })
         }
     } else {
         field_accessor
-    }
-}
-
-/// Generates the `__veil_env_is_redaction_enabled` function
-pub fn __veil_env_is_redaction_enabled() -> proc_macro2::TokenStream {
-    if cfg!(feature = "environment-aware") {
-        // Generate a function that returns whether redaction is enabled based on the environment.
-        // The compiler will be able to deduplicate the function, so we won't be generating hundreds of copies of it in the final binary.
-        quote! { ::veil::private::env_is_redaction_enabled!(); }
-    } else {
-        proc_macro2::TokenStream::default()
     }
 }

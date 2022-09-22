@@ -204,43 +204,6 @@
 //! }
 //! ```
 //!
-//! # Environment Awareness
-//!
-//! You can configure Veil to redact or skip redacting data based on environment variables. Enable the `environment-aware` Cargo feature like so in your Cargo.toml:
-//!
-//! ```toml
-//! [dependencies]
-//! veil = { version = "0.1", features = ["environment-aware"] }
-//! ```
-//!
-//! ## `VEIL_DISABLE_REDACTION`
-//!
-//! Redaction can be completely disabled by setting the `VEIL_DISABLE_REDACTION` environment variable. This is only checked once during the program lifetime for security purposes.
-//!
-//! ## `.veil.toml`
-//!
-//! Redaction can also be configured on a per-project basis using a `.veil.toml` file. Put this file in your crate or workspace root and Veil will read it at compile time.
-//!
-//! **Please note, if you change the file, Veil won't see the changes until you do a clean build of your crate.**
-//!
-//! ### Example
-//!
-//! `APP_ENV` is just an example here. You can match multiple environment variables with any UTF-8 name and value(s).
-//!
-//! ```toml
-//! [env.APP_ENV]
-//! redact = ["production", "staging"] # redact data if "APP_ENV" is set to any of these values
-//! skip-redact = ["dev", "qa"] # SKIP redacting data if "APP_ENV" is set to any of these values
-//!
-//! ## If "APP_ENV" isn't set or isn't recognised...
-//! [fallback]
-//! redact = true # do redact data (default)
-//! ## OR
-//! redact = false # don't redact data
-//! ## OR
-//! redact = "panic" # panic at runtime
-//! ```
-//!
 //! # Limitations
 //!
 //! Currently, this macro only supports [`std::fmt::Debug`] formatting with no modifiers (`{:?}`) or the "alternate" modifier (`{:#?}`).

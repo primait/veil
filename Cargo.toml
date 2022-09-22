@@ -7,19 +7,7 @@ license = "MIT"
 repository = "https://github.com/primait/veil"
 
 [workspace]
-members = [
-    "veil-macros",
-    "veil-tests",
-    "veil-tests/environment-aware",
-    "veil-tests/environment-aware-fallback-on",
-    "veil-tests/environment-aware-fallback-off",
-    "veil-tests/environment-aware-fallback-panic",
-    "veil-tests/environment-aware-disable",
-]
-
-[features]
-environment-aware = ["veil-macros/environment-aware", "lazy_static"]
+members = ["veil-macros", "veil-tests"]
 
 [dependencies]
 veil-macros = { path = "veil-macros" }
-lazy_static = { version = "1", optional = true }
