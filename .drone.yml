@@ -1,5 +1,4 @@
----
-kind: pipeline
+--- kind: pipeline
 name: default
 
 platform:
@@ -36,7 +35,7 @@ steps:
 - name: cargo-clippy-ci
   image: rust:1.61
   commands:
-  - cargo clippy -- -D warnings && cargo clippy -- -D warnings
+  - cargo clippy -- -D warnings && cargo clippy --features toggle -- -D warnings
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -46,7 +45,7 @@ steps:
 - name: cargo-test
   image: rust:1.61
   commands:
-  - cargo test --all && cargo test --all 
+  - cargo test --all && cargo test --all --features toggle
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
