@@ -1,5 +1,5 @@
 #![cfg_attr(not(test), allow(unused))]
-/// Simple test that ensures veil can actually be disabled
+//! Simple test that ensures veil can actually be disabled
 
 use veil::Redact;
 use veil_tests::{SENSITIVE_DATA, assert_has_sensitive_data};
