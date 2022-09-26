@@ -7,19 +7,16 @@ license = "MIT"
 repository = "https://github.com/primait/veil"
 
 [workspace]
-members = [
-    "veil-macros",
-    "veil-tests",
-    "veil-tests/environment-aware",
-    "veil-tests/environment-aware-fallback-on",
-    "veil-tests/environment-aware-fallback-off",
-    "veil-tests/environment-aware-fallback-panic",
-    "veil-tests/environment-aware-disable",
+members = ["veil-macros", "veil-tests"
+# Because those tests deal with global state we need to run them in a separate process. 
+# The easiest/only way to do this with the standard rust test harness is to put them in a
+# separate crate
+,"veil-tests/disable-redaction-test"
 ]
-
-[features]
-environment-aware = ["veil-macros/environment-aware", "lazy_static"]
 
 [dependencies]
 veil-macros = { path = "veil-macros" }
-lazy_static = { version = "1", optional = true }
+once_cell = "1"
+
+[features]
+toggle = []

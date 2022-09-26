@@ -1,9 +1,9 @@
 [package]
-name = "veil-tests-environment-aware-disable"
+name = "veil-tests-disable-redaction"
 version = "0.1.0"
 edition = "2021"
 publish = false
 
 [dependencies]
-veil = { path = "../../", features = ["environment-aware"] }
+veil = { path = "../../", features = ["toggle"] }
 veil-tests = { path = "../" }

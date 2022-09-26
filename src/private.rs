@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+
 #[repr(transparent)]
 pub struct DisplayDebug(String);
 impl std::fmt::Debug for DisplayDebug {
@@ -107,15 +108,11 @@ impl RedactFlags {
     }
 }
 
-pub fn redact(
-    this: &dyn Debug,
-    flags: RedactFlags,
-    #[cfg(feature = "environment-aware")] env_is_redaction_enabled: bool,
-) -> DisplayDebug {
+pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
     let mut redacted = String::new();
 
-    #[cfg(feature = "environment-aware")]
-    if !env_is_redaction_enabled {
+    #[cfg(feature = "toggle")]
+    if crate::toggle::get_redaction_behavior().is_plaintext() {
         return DisplayDebug(if flags.debug_alternate {
             format!("{:#?}", this)
         } else {
@@ -165,25 +162,3 @@ pub fn redact(
 
     DisplayDebug(redacted)
 }
-
-#[cfg(feature = "environment-aware")]
-pub fn env_is_redaction_enabled() -> Option<bool> {
-    // First check VEIL_DISABLE_REDACTION, which overrides any config file
-    lazy_static::lazy_static! {
-        // We deliberately only look this up once.
-        // If an attacker somehow is able to change environment variables, we don't want to give them a way of revealing sensitive data.
-        static ref IS_REDACTION_DISABLED: bool = std::env::var("VEIL_DISABLE_REDACTION").is_ok();
-    }
-    if *IS_REDACTION_DISABLED {
-        return Some(false);
-    }
-
-    // We'll run the `env_is_redaction_enabled!` macro here
-    // This is handled by the `fmt` module
-    // This is needed because we need CARGO_MANIFEST_DIR to be set by the crate being built,
-    // rather than this crate itself!
-    None
-}
-
-#[cfg(feature = "environment-aware")]
-pub use veil_macros::env_is_redaction_enabled;
