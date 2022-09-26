@@ -8,7 +8,7 @@ pub struct Customer {
 }
 
 fn main() {
-    // If the environment variable DISABLE_REDACTION is set veil will not redact anything
+    // If the environment variable APP_ENV is set to "dev" veil will not redact anything
     if let Ok(env) = env::var("APP_ENV") {
         if env == "dev" {
             // Note that veil::disable needs the `toggle` feature flag enabled
