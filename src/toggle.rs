@@ -1,7 +1,7 @@
 //! Makes it possible to disable veil's redaction behaviour
 //!
 use once_cell::sync::OnceCell;
-/// Enum describing the behaviour of veil
+/// Enum describing how Veil should behave when `std::fmt::Debug` is called on a `#[derive(Redact)]` item
 #[derive(Debug, Copy, Clone)]
 pub enum RedactionBehavior {
     /// Redact the fields as normal
