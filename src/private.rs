@@ -1,6 +1,5 @@
 use std::fmt::Debug;
 
-
 #[repr(transparent)]
 pub struct DisplayDebug(String);
 impl std::fmt::Debug for DisplayDebug {
