@@ -89,19 +89,19 @@ steps:
   environment:
     PLUGIN_DEPTH: 5
 
-#- name: build-production
-#  image: rust:1.61
-#  commands:
-#  - . /etc/profile.d/ecs-credentials-endpoint
-#  - ./deploy/build production
-#  environment:
-#    CARGO_AUTH_KEY:
-#      from_secret: cargo_auth_key
-#  volumes:
-#  - name: ecs
-#    path: /etc/profile.d/ecs-credentials-endpoint
-#  depends_on:
-#  - build-image
+- name: build-production
+  image: rust:1.61
+  commands:
+  - . /etc/profile.d/ecs-credentials-endpoint
+  - ./deploy/build production
+  environment:
+    CARGO_AUTH_KEY:
+      from_secret: cargo_auth_key
+  volumes:
+  - name: ecs
+    path: /etc/profile.d/ecs-credentials-endpoint
+  depends_on:
+  - git-clone
 
 trigger:
   event:

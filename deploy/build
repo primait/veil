@@ -32,6 +32,5 @@ if [[ "$DRONE_TAG" != "$version" ]]; then
 fi
 
 git checkout .
-#cargo login "$CARGO_AUTH_KEY"
-#cargo publish --all-features
-echo "Publishing disabled for now :)"
+cargo login "$CARGO_AUTH_KEY"
+cargo publish --all-features
