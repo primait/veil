@@ -16,6 +16,10 @@ members = ["veil-macros", "veil-tests",
 "veil-tests/disable-redaction-test"
 ]
 
+[[example]]
+name = "disable_redaction"
+required-features = ["toggle"]
+
 [dependencies]
 veil-macros = { path = "veil-macros" }
 once_cell = "1"
