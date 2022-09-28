@@ -87,9 +87,12 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.145"
+version = "1.0.144"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "728eb6351430bccb993660dfffc5a72f91ccc1295abaa8ce19b27ebe4f75568b"
+checksum = "0f747710de3dcd43b88c9168773254e809d8ddbdf9653b84e2554ab219f17860"
+dependencies = [
+ "serde_derive",
+]
 
 [[package]]
 name = "serde_derive"
@@ -168,12 +171,14 @@ name = "veil"
 version = "0.1.1"
 dependencies = [
  "once_cell",
+ "serde",
+ "toml",
  "veil-macros",
 ]
 
 [[package]]
 name = "veil-macros"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -182,7 +187,7 @@ dependencies = [
 
 [[package]]
 name = "veil-tests"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "regex",
  "trybuild",
@@ -192,7 +197,7 @@ dependencies = [
 
 [[package]]
 name = "veil-tests-disable-redaction"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "veil",
  "veil-tests",

@@ -16,6 +16,9 @@ members = ["veil-macros", "veil-tests",
 "veil-tests/disable-redaction-test"
 ]
 
+[features]
+toggle = []
+
 [[example]]
 name = "disable_redaction"
 required-features = ["toggle"]
@@ -24,5 +27,6 @@ required-features = ["toggle"]
 veil-macros = { path = "veil-macros", version = "0.1.1" }
 once_cell = "1"
 
-[features]
-toggle = []
+[dev-dependencies]
+toml = "0.5"
+serde = { version = "1", features = ["derive"] }

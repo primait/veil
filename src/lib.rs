@@ -225,3 +225,6 @@ pub use toggle::*;
 
 #[doc(hidden)]
 pub mod private;
+
+#[cfg(test)]
+mod versioning;
