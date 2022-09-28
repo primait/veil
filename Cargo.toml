@@ -1,6 +1,6 @@
 [package]
 name = "veil"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Rust derive macro for redacting sensitive data in `std::fmt::Debug`"
 license = "MIT OR Apache-2.0"
