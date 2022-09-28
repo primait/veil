@@ -87,7 +87,13 @@ enum InsuranceStatus {
 ```
 
 # Skip redacting data
+
 In testing environments it may be useful not to censor your logs. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
-- Setting the VEIL_DISABLE_REDACTION environment variable.
-or
-- Calling the `disable` function. See this [example](examples/disable_redaction.rs).
+
+- Setting the `VEIL_DISABLE_REDACTION` environment variable.
+
+OR
+
+- Calling the [`veil::disable`](https://docs.rs/veil/latest/veil/fn.disable.html) function. See this [example](examples/disable_redaction.rs).
+
+These are only checked ONCE for security purposes.
