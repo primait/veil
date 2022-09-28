@@ -33,4 +33,5 @@ fi
 
 git checkout .
 cargo login "$CARGO_AUTH_KEY"
-cargo publish --all-features
+cargo publish --all-features --package veil-macros
+cargo publish --all-features --package veil
