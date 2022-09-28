@@ -3,7 +3,7 @@ name = "veil"
 version = "0.1.0"
 edition = "2021"
 description = "Rust derive macro for redacting sensitive data in `std::fmt::Debug`"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/primait/veil"
 
 [workspace]
