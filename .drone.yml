@@ -37,7 +37,7 @@ steps:
   image: rust:1.61
   commands:
   - cargo clippy -- -D warnings && \
-    cargo clippy --features toggle -- -D warnings
+    cargo clippy --features toggle -- -D warnings && \
     cargo clippy --release -- -D warnings && \
     cargo clippy --release --features toggle -- -D warnings
   environment:
