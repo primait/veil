@@ -5,6 +5,8 @@ edition = "2021"
 description = "Rust derive macro for redacting sensitive data in `std::fmt::Debug`"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/primait/veil"
+categories = ["rust-patterns", "development-tools::debugging", "value-formatting"]
+keywords = ["redaction", "masking", "redact", "privacy", "sensitive"]
 
 [workspace]
 members = ["veil-macros", "veil-tests",
