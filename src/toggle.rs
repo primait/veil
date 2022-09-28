@@ -1,15 +1,18 @@
+#![cfg_attr(docsrs, doc(cfg(feature = "toggle")))]
+
 //! Makes it possible to disable veil's redaction behaviour
-//!
+
 use once_cell::sync::OnceCell;
+
 /// Enum describing how Veil should behave when `std::fmt::Debug` is called on a `#[derive(Redact)]` item
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "toggle")))]
 pub enum RedactionBehavior {
     /// Redact the fields as normal
     Redact,
     /// Print the fields as plaintext
     Plaintext,
 }
-
 impl RedactionBehavior {
     pub fn is_redact(&self) -> bool {
         matches!(self, &RedactionBehavior::Redact)
@@ -22,13 +25,13 @@ impl RedactionBehavior {
 
 static DEBUG_FORMAT: OnceCell<RedactionBehavior> = OnceCell::new();
 
-/// Sets the formatting of the debug logs
+#[cfg_attr(docsrs, doc(cfg(feature = "toggle")))]
+/// Disables Veil redaction globally.
 ///
 /// Should only be called once, preferrably at the top of main,
-/// before any calls to [`std::fmt::Debug`].
+/// before any calls to [`std::fmt::Debug`], otherwise `Err` will be returned.
 ///
-/// If sucessfuly set the value returns Ok(()),
-/// otherwise returns Err
+/// Overrides the `VEIL_DISABLE_REDACTION` environment variable, if set.
 /// ```
 /// // If the environment variable DISABLE_REDACTION is set veil will not redact anything
 /// if let Ok(env) = std::env::var("APP_ENV") {
