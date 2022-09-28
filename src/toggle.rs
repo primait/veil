@@ -25,7 +25,7 @@ static DEBUG_FORMAT: OnceCell<RedactionBehavior> = OnceCell::new();
 /// Sets the formatting of the debug logs
 ///
 /// Should only be called once, preferrably at the top of main,
-/// before any calls to [`std::fmt::Debug`] or [`get_redaction_behavior`]
+/// before any calls to [`std::fmt::Debug`].
 ///
 /// If sucessfuly set the value returns Ok(()),
 /// otherwise returns Err
