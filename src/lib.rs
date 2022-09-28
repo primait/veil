@@ -121,16 +121,6 @@
 //! }
 //! ```
 //!
-//! # Specializations
-//!
-//! Currently, we specialize the implementation for the types below.
-//!
-//! **Please note that specializations are somewhat heuristic. For example, if you use a type alias in place of a specialized type, the specialization will not be applied as we can't detect the actual type used.**
-//!
-//! | **Type**    |   | **Specialization**                                      |
-//! |-------------|---|---------------------------------------------------------|
-//! | `Option<T>` |   | The data inside a `Some(...)` variant will be redacted. |
-//!
 //! # Full Example
 //!
 //! ```rust
@@ -203,6 +193,16 @@
 //!     },
 //! }
 //! ```
+//!
+//! # Specializations
+//!
+//! Currently, we specialize the implementation for the types below.
+//!
+//! **Please note that specializations are somewhat heuristic. For example, if you use a type alias in place of a specialized type, the specialization will not be applied as we can't detect the actual type used.**
+//!
+//! | **Type**    |   | **Specialization**                                      |
+//! |-------------|---|---------------------------------------------------------|
+//! | `Option<T>` |   | The data inside a `Some(...)` variant will be redacted. |
 //!
 //! # Limitations
 //!
