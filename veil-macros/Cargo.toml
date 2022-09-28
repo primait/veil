@@ -1,7 +1,11 @@
 [package]
 name = "veil-macros"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+description = "Veil procedural macros"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/primait/veil"
+readme = "../README.md"
 
 [lib]
 proc-macro = true
