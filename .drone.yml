@@ -54,20 +54,6 @@ steps:
   depends_on:
   - cargo-clippy-ci
 
-- name: cargo-build
-  image: rust:1.61
-  commands:
-  - cargo build -j 2 --all-features
-  environment:
-    BUILD_ENV: dev
-    CARGO_HOME: /drone/src/.cargo
-  when:
-    branch:
-      exclude:
-      - master
-  depends_on:
-  - cargo-test
-
 trigger:
   event:
   - push
