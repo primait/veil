@@ -27,5 +27,24 @@ fi
 
 git checkout .
 cargo login "$CARGO_AUTH_KEY"
+
 cargo publish --all-features --package veil-macros
+
+# We have to do this to ensure that the package is published even if the registry is out of sync.
+# veil depends on veil-macros, so this is published first, but the registry doesn't know about it yet, so the publish fails.
+# This loop checks for the package to be available, and retries until it is.
+#
+# I evaluated loads of other workarounds, namely cargo subcommands that claim to fix this issue, but for some reason, every
+# single one of these tools does extra stuff on top of fixing the issue, such as generating changelogs, bumping versions, etc.
+# and for whatever reason, you can't turn these off?! Very weird.
+#
+# Relevant issue: https://github.com/rust-lang/cargo/issues/9507
+# Relevant fix PR: https://github.com/rust-lang/cargo/pull/11062
+current_remote_version=''
+while [ "$DRONE_TAG" != "$current_remote_version" ]
+do
+  current_remote_version=$(curl "https://crates.io/api/v1/crates/veil-macros/$DRONE_TAG" -s | jq '.version .num')
+  sleep 3
+done
+
 cargo publish --all-features --package veil
