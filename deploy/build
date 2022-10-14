@@ -15,7 +15,6 @@ if [ $# -eq 0 ]; then
 fi
 
 export ENV=$1
-export AWS_DEFAULT_REGION="eu-west-1"
 export VERSION="${DRONE_TAG:-$DRONE_COMMIT_SHA}"
 
 version=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
