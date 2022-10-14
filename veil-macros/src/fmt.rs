@@ -74,7 +74,7 @@ impl FormatData<'_> {
             // Parse field flags from attributes on this field
             let field_flags = match field.attrs.len() {
                 0 => all_fields_flags,
-                1 => match FieldFlags::extract::<1>(&field.attrs, all_fields_flags.is_some())? {
+                _ => match FieldFlags::extract::<1>(&field.attrs, all_fields_flags.is_some())? {
                     [Some(flags)] => {
                         if flags.variant {
                             return Err(syn::Error::new(
@@ -93,12 +93,6 @@ impl FormatData<'_> {
 
                     [None] => None,
                 },
-                _ => {
-                    return Err(syn::Error::new(
-                        field.span(),
-                        "only one `#[redact(...)]` attribute is allowed per field",
-                    ))
-                }
             };
 
             // If we have field flags...
