@@ -36,7 +36,10 @@ steps:
 - name: cargo-clippy-ci
   image: rust:1.61
   commands:
-  - cargo clippy -- -D warnings && cargo clippy --features toggle -- -D warnings
+  - cargo clippy -- -D warnings &&
+    cargo clippy --features toggle -- -D warnings &&
+    cargo clippy --release -- -D warnings &&
+    cargo clippy --release --features toggle -- -D warnings
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -53,20 +56,6 @@ steps:
     CARGO_HTTP_CAINFO: ""
   depends_on:
   - cargo-clippy-ci
-
-- name: cargo-build
-  image: rust:1.61
-  commands:
-  - cargo build -j 2 --all-features
-  environment:
-    BUILD_ENV: dev
-    CARGO_HOME: /drone/src/.cargo
-  when:
-    branch:
-      exclude:
-      - master
-  depends_on:
-  - cargo-test
 
 trigger:
   event:
@@ -89,19 +78,19 @@ steps:
   environment:
     PLUGIN_DEPTH: 5
 
-#- name: build-production
-#  image: rust:1.61
-#  commands:
-#  - . /etc/profile.d/ecs-credentials-endpoint
-#  - ./deploy/build production
-#  environment:
-#    CARGO_AUTH_KEY:
-#      from_secret: cargo_auth_key
-#  volumes:
-#  - name: ecs
-#    path: /etc/profile.d/ecs-credentials-endpoint
-#  depends_on:
-#  - build-image
+- name: build-production
+  image: rust:1.61
+  commands:
+  - . /etc/profile.d/ecs-credentials-endpoint
+  - ./deploy/build production
+  environment:
+    CARGO_AUTH_KEY:
+      from_secret: cargo_auth_key
+  volumes:
+  - name: ecs
+    path: /etc/profile.d/ecs-credentials-endpoint
+  depends_on:
+  - git-clone
 
 trigger:
   event:

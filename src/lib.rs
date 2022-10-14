@@ -121,16 +121,6 @@
 //! }
 //! ```
 //!
-//! # Specializations
-//!
-//! Currently, we specialize the implementation for the types below.
-//!
-//! **Please note that specializations are somewhat heuristic. For example, if you use a type alias in place of a specialized type, the specialization will not be applied as we can't detect the actual type used.**
-//!
-//! | **Type**    |   | **Specialization**                                      |
-//! |-------------|---|---------------------------------------------------------|
-//! | `Option<T>` |   | The data inside a `Some(...)` variant will be redacted. |
-//!
 //! # Full Example
 //!
 //! ```rust
@@ -204,6 +194,16 @@
 //! }
 //! ```
 //!
+//! # Specializations
+//!
+//! Currently, we specialize the implementation for the types below.
+//!
+//! **Please note that specializations are somewhat heuristic. For example, if you use a type alias in place of a specialized type, the specialization will not be applied as we can't detect the actual type used.**
+//!
+//! | **Type**    |   | **Specialization**                                      |
+//! |-------------|---|---------------------------------------------------------|
+//! | `Option<T>` |   | The data inside a `Some(...)` variant will be redacted. |
+//!
 //! # Limitations
 //!
 //! Currently, this macro only supports [`std::fmt::Debug`] formatting with no modifiers (`{:?}`) or the "alternate" modifier (`{:#?}`).
@@ -225,3 +225,6 @@ pub use toggle::*;
 
 #[doc(hidden)]
 pub mod private;
+
+#[cfg(test)]
+mod versioning;

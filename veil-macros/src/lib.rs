@@ -73,3 +73,9 @@ pub fn derive_redact(item: TokenStream) -> TokenStream {
         Err(err) => err.into_compile_error().into(),
     }
 }
+
+#[doc(hidden)]
+#[proc_macro]
+pub fn __private_version(_: TokenStream) -> TokenStream {
+    format!("{:?}", env!("CARGO_PKG_VERSION")).parse().unwrap()
+}
