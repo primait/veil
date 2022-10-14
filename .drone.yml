@@ -81,7 +81,7 @@ steps:
 - name: build-production
   image: rust:1.61
   commands:
-  - . /deploy/build production
+  - ./deploy/build production
   environment:
     CARGO_AUTH_KEY:
       from_secret: cargo_auth_key
