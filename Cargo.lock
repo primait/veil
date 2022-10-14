@@ -190,6 +190,7 @@ name = "veil-tests"
 version = "0.0.0"
 dependencies = [
  "regex",
+ "serde",
  "trybuild",
  "veil",
  "walkdir",

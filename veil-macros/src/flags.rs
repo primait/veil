@@ -45,14 +45,14 @@ impl FieldFlags {
         let mut head = 0;
 
         for attr in attrs {
-            if head == AMOUNT {
-                return Err(syn::Error::new(
-                    attr.span(),
-                    "too many `#[redact(...)]` attributes specified",
-                ));
-            }
-
             if let Some(flags) = Self::parse(attr)? {
+                if head == AMOUNT {
+                    return Err(syn::Error::new(
+                        attr.span(),
+                        "too many `#[redact(...)]` attributes specified",
+                    ));
+                }
+
                 if flags.skip {
                     if !skip_allowed {
                         return Err(syn::Error::new(attr.span(), "`#[redact(skip)]` is not allowed here"));
