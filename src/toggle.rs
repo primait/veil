@@ -14,10 +14,12 @@ pub enum RedactionBehavior {
     Plaintext,
 }
 impl RedactionBehavior {
+    /// Returns whether the current redaction behavior is to print redacted data
     pub fn is_redact(&self) -> bool {
         matches!(self, &RedactionBehavior::Redact)
     }
 
+    /// Returns whether the current redaction behavior is to print data as plaintext
     pub fn is_plaintext(&self) -> bool {
         matches!(self, &RedactionBehavior::Plaintext)
     }
