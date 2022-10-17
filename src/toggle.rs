@@ -30,6 +30,8 @@ static DEBUG_FORMAT: OnceCell<RedactionBehavior> = OnceCell::new();
 #[cfg_attr(docsrs, doc(cfg(feature = "toggle")))]
 /// Disables Veil redaction globally.
 ///
+/// See the "Environmental Awareness" section in the [crate level documentation](../index.html) for more information.
+///
 /// Should only be called once, preferrably at the top of main,
 /// before any calls to [`std::fmt::Debug`], otherwise `Err` will be returned.
 ///

@@ -217,6 +217,18 @@
 //!
 //! [`std::fmt::Display`] should NOT be redacted. It is meant to be human-readable, and also has a snowball effect on [`ToString`]
 //! as [`std::fmt::Display`] automatically implements it, leading to confusing and unexpected behaviour.
+//!
+//! # Environmental Awareness
+//!
+//! In testing environments it may be useful to disable redaction entirely. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
+//!
+//! - Setting the `VEIL_DISABLE_REDACTION` environment variable.
+//!
+//! OR
+//!
+//! - Calling the [`veil::disable`](disable) function. See this [example](https://github.com/primait/veil/blob/master/examples/disable_redaction.rs).
+//!
+//! These are only checked ONCE for security purposes.
 
 pub use veil_macros::Redact;
 
