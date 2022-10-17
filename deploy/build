@@ -24,8 +24,8 @@ if [[ "$DRONE_TAG" != "$version" ]]; then
   exit 1
 fi
 
-apt update
-apt install jq -y
+apt-get update
+apt-get install jq -y
 
 git checkout .
 cargo login "$CARGO_AUTH_KEY"
