@@ -88,7 +88,7 @@ enum InsuranceStatus {
 
 # Environmental Awareness
 
-In testing environments it may be useful to not censor your logs. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
+In testing environments it may be useful to disable redaction entirely. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
 
 - Setting the `VEIL_DISABLE_REDACTION` environment variable.
 

@@ -1,4 +1,5 @@
 #![deny(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! Implements [`std::fmt::Debug`] for a struct or enum variant, with certain fields redacted.
 //!
