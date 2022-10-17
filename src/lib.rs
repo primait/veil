@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 //! Implements [`std::fmt::Debug`] for a struct or enum variant, with certain fields redacted.
 //!
 //! The purpose of this macro is to allow for easy, configurable and efficient redaction of sensitive data in structs and enum variants.
