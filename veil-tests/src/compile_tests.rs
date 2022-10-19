@@ -173,14 +173,3 @@ fn test_redact_all_with_flags() {
 fn test_redact_tuple_struct() {
     println!("{:#?}", TupleStruct(100, 2000000));
 }
-
-#[test]
-fn test_redact_multiple_attributes() {
-    #[derive(serde::Serialize, Redact)]
-    struct MultipleAttributes {
-        #[redact]
-        #[serde(default)]
-        hidden: bool,
-        exposed: bool,
-    }
-}

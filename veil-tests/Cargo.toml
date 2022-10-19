@@ -11,4 +11,3 @@ veil = { path = "../" }
 trybuild = "1"
 regex = "1"
 walkdir = "2"
-serde = { version = "1", features = ["derive"] }
