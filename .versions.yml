@@ -1,0 +1,12 @@
+files:
+  - path: Cargo.toml
+    pattern: "\\[package\\][\\s\\S]*?version = \"{version}\""
+
+  - path: Cargo.toml
+    pattern: "veil-macros = . path = \"veil-macros\", version = \"{version}\" ."
+
+  - path: veil-macros/Cargo.toml
+    pattern: "\\[package\\][\\s\\S]*?version = \"{version}\""
+
+  - path: README.md
+    pattern: "veil = \"{version}\""
