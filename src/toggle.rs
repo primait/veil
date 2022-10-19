@@ -50,7 +50,7 @@ pub fn disable() -> Result<(), RedactionBehavior> {
 
 /// Get the current debug format value
 pub(crate) fn get_redaction_behavior() -> RedactionBehavior {
-    if let "1" | "on" = std::env::var("VEIL_DISABLE_REDACTION").unwrap_or_default().as_str() {
+    if let "true" | "1" | "on" = std::env::var("VEIL_DISABLE_REDACTION").unwrap_or_default().to_ascii_lowercase().as_str() {
         *DEBUG_FORMAT.get_or_init(|| RedactionBehavior::Plaintext)
     } else {
         *DEBUG_FORMAT.get_or_init(|| RedactionBehavior::Redact)
