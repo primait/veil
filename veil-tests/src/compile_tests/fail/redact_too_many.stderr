@@ -1,7 +1,7 @@
-error: too many `#[redact(...)]` attributes specified
- --> src/compile_tests/fail/redact_too_many.rs:6:5
+error: only one `#[redact(...)]` attribute is allowed per field
+ --> src/compile_tests/fail/redact_too_many.rs:5:5
   |
-6 |     #[redact]
+5 |     #[redact]
   |     ^
 
 error: a `#[redact(variant, ...)]` is already present

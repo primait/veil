@@ -1,13 +1,15 @@
 #[macro_use]
 extern crate quote;
 
-use proc_macro::TokenStream;
-use syn::spanned::Spanned;
-
 mod enums;
 mod flags;
 mod fmt;
+mod sanitize;
 mod structs;
+
+use proc_macro::TokenStream;
+use sanitize::DeriveAttributeFilter;
+use syn::spanned::Spanned;
 
 /// Keep track of whether we actually redact anything.
 ///
@@ -42,7 +44,11 @@ impl Default for UnusedDiagnostic {
 ///
 /// See the [crate level documentation](index.html) for more information.
 pub fn derive_redact(item: TokenStream) -> TokenStream {
-    let item = syn::parse_macro_input!(item as syn::DeriveInput);
+    let mut item = syn::parse_macro_input!(item as syn::DeriveInput);
+
+    // Remove all non-veil attributes to avoid conflicting with other
+    // derive proc macro attributes.
+    item.retain_veil_attrs();
 
     // Unfortunately this is somewhat complex to implement at this stage of the macro "pipeline",
     // so we'll pass around a mutable reference to this variable, and set it to false if we redact anything.
