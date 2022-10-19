@@ -176,7 +176,7 @@ fn test_redact_tuple_struct() {
 
 #[test]
 fn test_redact_multiple_attributes() {
-    #[derive(serde::Serialize, Redact)]
+    #[derive(serde::Serialize, serde::Deserialize, Redact)]
     struct MultipleAttributes {
         #[redact]
         #[serde(default)]
@@ -184,7 +184,7 @@ fn test_redact_multiple_attributes() {
         exposed: bool,
     }
 
-    #[derive(serde::Serialize, Redact)]
+    #[derive(serde::Serialize, serde::Deserialize, Redact)]
     #[serde(rename_all = "camelCase")]
     #[redact(all)]
     struct MultipleAttributesAll {
@@ -192,4 +192,16 @@ fn test_redact_multiple_attributes() {
         hidden: bool,
         exposed: bool,
     }
+
+    let json = serde_json::json!({
+        "exposed": true
+    });
+
+    let attributes: MultipleAttributesAll = serde_json::from_value(json.clone()).unwrap();
+    assert!(attributes.exposed);
+    assert!(!attributes.hidden);
+
+    let attributes: MultipleAttributes = serde_json::from_value(json).unwrap();
+    assert!(attributes.exposed);
+    assert!(!attributes.hidden);
 }
