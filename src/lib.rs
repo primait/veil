@@ -223,7 +223,7 @@
 //!
 //! In testing environments it may be useful to disable redaction entirely. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
 //!
-//! - Setting the `VEIL_DISABLE_REDACTION` environment variable.
+//! - Setting the `VEIL_DISABLE_REDACTION` environment variable to "1", "true" or "on" (case insensitive).
 //!
 //! OR
 //!
