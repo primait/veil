@@ -1,5 +1,4 @@
 use std::num::NonZeroU8;
-
 use syn::spanned::Spanned;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -87,16 +86,14 @@ impl FieldFlags {
         // The modifiers could be a single value or a list, so we need to handle both cases.
         let modifiers = match attr.parse_meta()? {
             // List
-            syn::Meta::List(syn::MetaList { path, nested, .. }) if path.is_ident("redact") => {
-                nested.into_iter().filter_map(|meta| match meta {
-                    syn::NestedMeta::Meta(meta) => Some(meta),
-                    _ => None,
-                })
-            }
+            syn::Meta::List(syn::MetaList { nested, .. }) => nested.into_iter().filter_map(|meta| match meta {
+                syn::NestedMeta::Meta(meta) => Some(meta),
+                _ => None,
+            }),
 
             // Single value
             meta => match meta {
-                syn::Meta::Path(path) if path.is_ident("redact") => return Ok(Some(flags)),
+                syn::Meta::Path(_) => return Ok(Some(flags)),
                 _ => return Ok(None),
             },
         };
