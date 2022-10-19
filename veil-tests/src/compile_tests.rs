@@ -176,32 +176,127 @@ fn test_redact_tuple_struct() {
 
 #[test]
 fn test_redact_multiple_attributes() {
-    #[derive(serde::Serialize, serde::Deserialize, Redact)]
+    use rand_derive2::RandGen;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
     struct MultipleAttributes {
         #[redact]
         #[serde(default)]
-        hidden: bool,
-        exposed: bool,
+        foo: bool,
+        bar: bool,
     }
 
-    #[derive(serde::Serialize, serde::Deserialize, Redact)]
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
     #[serde(rename_all = "camelCase")]
     #[redact(all)]
     struct MultipleAttributesAll {
         #[serde(default)]
-        hidden: bool,
-        exposed: bool,
+        #[redact(partial)]
+        foo: bool,
+        bar: bool,
+    }
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    struct MultipleAttributesTuple(
+        #[redact]
+        #[serde(default)]
+        bool,
+        bool,
+    );
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    #[redact(all)]
+    struct MultipleAttributesAllTuple(
+        #[serde(default)]
+        #[redact(partial)]
+        bool,
+        bool,
+    );
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    enum MultipleAttributesEnum {
+        #[serde(rename = "foo")]
+        #[redact(variant)]
+        Foo,
+
+        #[serde(rename = "bar")]
+        #[redact(all)]
+        Bar {
+            #[serde(default)]
+            #[redact(partial)]
+            foo: bool,
+            bar: bool,
+        },
+
+        #[redact(all)]
+        #[serde(rename = "baz")]
+        Baz(
+            #[serde(default)]
+            #[redact(partial)]
+            bool,
+            bool,
+        ),
+    }
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    #[redact(all, variant)]
+    enum MultipleAttributesEnumAll {
+        #[serde(rename = "foo")]
+        Foo,
+
+        #[serde(rename = "bar")]
+        #[redact(all)]
+        Bar { foo: bool, bar: bool },
+
+        #[redact(all)]
+        #[serde(rename = "baz")]
+        Baz(bool, bool),
+
+        #[serde(rename = "qux")]
+        #[redact(all)]
+        Qux {
+            #[serde(default)]
+            #[redact(partial)]
+            foo: bool,
+            bar: bool,
+        },
+
+        #[serde(rename = "quux")]
+        #[redact(all)]
+        Quux(
+            #[serde(default)]
+            #[redact(partial)]
+            bool,
+            bool,
+        ),
     }
 
     let json = serde_json::json!({
-        "exposed": true
+        "bar": true
     });
+    let attributes: MultipleAttributesAll = serde_json::from_value(json).unwrap();
+    assert!(!attributes.foo);
+    assert!(attributes.bar);
 
-    let attributes: MultipleAttributesAll = serde_json::from_value(json.clone()).unwrap();
-    assert!(attributes.exposed);
-    assert!(!attributes.hidden);
-
-    let attributes: MultipleAttributes = serde_json::from_value(json).unwrap();
-    assert!(attributes.exposed);
-    assert!(!attributes.hidden);
+    macro_rules! test_serde_attributes {
+        {$($ty:ty),*} => {
+            $({
+                let random = <$ty>::generate_random();
+                let json = serde_json::to_string(&random).unwrap();
+                serde_json::from_str::<$ty>(&json).unwrap();
+            })*
+        };
+    }
+    test_serde_attributes! {
+        MultipleAttributes,
+        MultipleAttributesAll,
+        MultipleAttributesEnum,
+        MultipleAttributesEnumAll,
+        MultipleAttributesTuple,
+        MultipleAttributesAllTuple
+    }
 }
