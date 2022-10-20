@@ -45,7 +45,7 @@ cargo publish --all-features --package veil-macros
 current_remote_version=''
 while [ "$DRONE_TAG" != "$current_remote_version" ]
 do
-  current_remote_version=$(curl "https://crates.io/api/v1/crates/veil-macros/$DRONE_TAG" -s | jq '.version .num')
+  current_remote_version=$(curl "https://crates.io/api/v1/crates/veil-macros/$DRONE_TAG" -s | jq '.version .num' | cut -d'"' -f2)
   sleep 3
 done
 
