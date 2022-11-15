@@ -4,6 +4,6 @@ metadata:
   name: veil
   description: Rust derive macro for redacting sensitive data in `std::fmt::Debug`
 spec:
-  type: service
+  type: library
   lifecycle: production
   owner: team-shared-services
