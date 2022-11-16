@@ -64,9 +64,14 @@ fn test_macros_crate_version() {
 
     let manifest: CargoManifest = toml::from_str(include_str!("../Cargo.toml")).expect("Couldn't parse Cargo.toml");
 
+    assert!(
+        manifest.dependencies.veil_macros.version.starts_with('='),
+        "The version of `veil-macros` in the `[dependencies]` table in `veil` `Cargo.toml` should start with `=` to pin it to the specific matching version"
+    );
+
     assert_eq!(
         manifest.dependencies.veil_macros.version,
-        env!("CARGO_PKG_VERSION"),
+        concat!("=", env!("CARGO_PKG_VERSION")),
         "The version of `veil-macros` that `veil` depends on in `[dependencies]` is out of date, please update it to match the version in Cargo.toml"
     );
 }
