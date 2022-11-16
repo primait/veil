@@ -16,7 +16,7 @@ steps:
     PLUGIN_DEPTH: 5
 
 - name: cargo-deps
-  image: rust:1.61
+  image: rust:1.64
   commands:
   - cargo fetch
   environment:
@@ -25,7 +25,7 @@ steps:
   - git-clone
 
 - name: cargo-format
-  image: rust:1.61
+  image: rust:1.64
   commands:
   - cargo fmt --all -- --check
   environment:
@@ -34,7 +34,7 @@ steps:
   - cargo-deps
 
 - name: cargo-clippy-ci
-  image: rust:1.61
+  image: rust:1.64
   commands:
   - cargo clippy -- -D warnings &&
     cargo clippy --features toggle -- -D warnings &&
@@ -47,7 +47,7 @@ steps:
   - cargo-format
 
 - name: cargo-test
-  image: rust:1.61
+  image: rust:1.64
   commands:
   - cargo test --all && cargo test --all --features toggle
   environment:
@@ -79,7 +79,7 @@ steps:
     PLUGIN_DEPTH: 5
 
 - name: build-production
-  image: rust:1.61
+  image: rust:1.64
   commands:
   - ./deploy/build production
   environment:
