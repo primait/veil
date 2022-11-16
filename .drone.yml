@@ -27,7 +27,7 @@ steps:
 - name: cargo-format
   image: rust:1.64
   commands:
-  - rustup component add rustfmt
+  - rustup component add rustfmt &&
     cargo fmt --all -- --check
   environment:
     CARGO_HOME: /drone/src/.cargo
@@ -37,7 +37,7 @@ steps:
 - name: cargo-clippy-ci
   image: rust:1.64
   commands:
-  - rustup component add clippy
+  - rustup component add clippy &&
     cargo clippy -- -D warnings &&
     cargo clippy --features toggle -- -D warnings &&
     cargo clippy --release -- -D warnings &&
