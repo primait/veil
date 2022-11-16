@@ -57,3 +57,6 @@ target/
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# Not needed for libraries
+Cargo.lock
