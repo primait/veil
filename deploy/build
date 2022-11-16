@@ -29,6 +29,6 @@ apt-get install jq -y
 
 git checkout .
 
-cargo install cargo-release
+cargo install cargo-release --version "0.23.*"
 cargo login "$CARGO_AUTH_KEY"
 cargo release publish --execute --no-confirm --workspace --all-features
