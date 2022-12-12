@@ -98,6 +98,31 @@ enum Country {
 #[derive(Redact)]
 struct TupleStruct(#[redact] u32, #[redact(partial)] u32);
 
+#[derive(Redact)]
+struct GenericStruct<Foo: std::fmt::Debug, Bar: std::fmt::Debug>(Foo, #[redact] Bar);
+
+#[derive(Redact)]
+struct GenericWhereStruct<Foo, Bar>(Foo, #[redact] Bar)
+where
+    Foo: std::fmt::Debug,
+    Bar: std::fmt::Debug;
+
+#[derive(Redact)]
+enum GenericWhereEnum<Foo, Bar>
+where
+    Foo: std::fmt::Debug,
+    Bar: std::fmt::Debug,
+{
+    FooVariant(Foo),
+    BarVariant(#[redact] Bar),
+}
+
+#[derive(Redact)]
+enum GenericEnum<Foo: std::fmt::Debug, Bar: std::fmt::Debug> {
+    FooVariant(Foo),
+    BarVariant(#[redact] Bar),
+}
+
 #[test]
 fn test_credit_card_redacting() {
     println!(
