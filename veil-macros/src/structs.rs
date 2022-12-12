@@ -5,6 +5,7 @@ use syn::spanned::Spanned;
 
 pub(super) fn derive_redact(
     s: syn::DataStruct,
+    generics: syn::Generics,
     attrs: Vec<syn::Attribute>,
     name_ident: syn::Ident,
     unused: &mut UnusedDiagnostic,
@@ -57,8 +58,9 @@ pub(super) fn derive_redact(
         }
     };
 
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     Ok(quote! {
-        impl ::std::fmt::Debug for #name_ident {
+        impl #impl_generics ::std::fmt::Debug for #name_ident #ty_generics #where_clause {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 let debug_alternate = f.alternate();
                 #impl_debug;
