@@ -1,0 +1,17 @@
+error: unknown modifier for `Pii` attribute
+ --> src/compile_tests/fail/pii_unknown_flag.rs:4:1
+  |
+4 | #[redact(skip)]
+  | ^^^^^^^^^^^^^^^
+
+error: unknown modifier for `Pii` attribute
+  --> src/compile_tests/fail/pii_unknown_flag.rs:10:1
+   |
+10 | #[redact(all)]
+   | ^^^^^^^^^^^^^^
+
+error: unknown modifier for `Pii` attribute
+  --> src/compile_tests/fail/pii_unknown_flag.rs:16:1
+   |
+16 | #[redact(blah)]
+   | ^^^^^^^^^^^^^^^

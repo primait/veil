@@ -2,7 +2,7 @@
 
 #![cfg_attr(not(test), allow(unused))]
 
-use veil::Redact;
+use veil::{Pii, Redact, RedactPii};
 
 pub const SENSITIVE_DATA: &[&str] = &[
     "William",
@@ -158,4 +158,43 @@ fn test_display_redaction() {
 
     assert_eq!(format!("{:?}", RedactDebug("\"".to_string())), r#"RedactDebug("\"")"#);
     assert_eq!(format!("{:?}", RedactDisplay("\"".to_string())), r#"RedactDisplay(")"#);
+}
+
+#[test]
+fn test_derive_pii() {
+    #[derive(Pii)]
+    struct PiiString(String);
+    impl std::fmt::Display for PiiString {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(f)
+        }
+    }
+
+    let pii = PiiString(SENSITIVE_DATA[0].to_string());
+
+    assert_no_sensitive_data(pii.redact());
+
+    let mut buffer = String::new();
+    pii.redact_into(&mut buffer).unwrap();
+    assert_no_sensitive_data(buffer);
+}
+
+#[test]
+fn test_derive_pii_modifiers() {
+    #[derive(Pii)]
+    #[redact(fixed = 3, with = '-')]
+    struct PiiString(String);
+    impl std::fmt::Display for PiiString {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(f)
+        }
+    }
+
+    let pii = PiiString(SENSITIVE_DATA[0].to_string());
+
+    assert_eq!(pii.redact(), "---");
+
+    let mut buffer = String::new();
+    pii.redact_into(&mut buffer).unwrap();
+    assert_eq!(buffer, "---");
 }

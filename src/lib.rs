@@ -1,4 +1,5 @@
 #![deny(missing_docs)]
+#![deny(rustdoc::broken_intra_doc_links)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! Implements [`std::fmt::Debug`] for a struct or enum variant, with certain fields redacted.
@@ -220,6 +221,14 @@
 //! [`std::fmt::Display`] should NOT be redacted. It is meant to be human-readable, and also has a snowball effect on [`ToString`]
 //! as [`std::fmt::Display`] automatically implements it, leading to confusing and unexpected behaviour.
 //!
+//! # Manually Redacting Data
+//!
+//! If you want to manually redact data, you have a few options:
+//!
+//! * Use the [`Pii`] derive macro to generate a [`RedactPii`] trait implementation for your type.
+//! * Implement the [`RedactPii`] trait manually.
+//! * Use the provided [`RedactorBuilder`] to build a [`Redactor`] instance.
+//!
 //! # Environmental Awareness
 //!
 //! In testing environments it may be useful to disable redaction entirely. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
@@ -230,9 +239,15 @@
 //!
 //! - Calling the [`veil::disable`](disable) function. See this [example](https://github.com/primait/veil/blob/master/examples/disable_redaction.rs).
 //!
-//! These are only checked ONCE for security purposes.
+//! These are only checked ONCE for security reasons.
 
-pub use veil_macros::Redact;
+pub use veil_macros::{Pii, Redact};
+
+mod pii;
+pub use pii::RedactPii;
+
+mod builder;
+pub use builder::{Redactor, RedactorBuilder};
 
 #[cfg(feature = "toggle")]
 mod toggle;

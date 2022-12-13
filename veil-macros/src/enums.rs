@@ -1,5 +1,5 @@
 use crate::{
-    flags::FieldFlags,
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
     fmt::{self, FormatData},
     UnusedDiagnostic,
 };
@@ -21,7 +21,7 @@ pub(super) fn derive_redact(
     unused: &mut UnusedDiagnostic,
 ) -> Result<TokenStream, syn::Error> {
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
-    let top_level_flags = match FieldFlags::extract::<1>(&attrs, false)? {
+    let top_level_flags = match FieldFlags::extract::<1>("Redact", &attrs, FieldFlagsParse { skip_allowed: false })? {
         [Some(flags)] => {
             if !flags.all || !flags.variant {
                 return Err(syn::Error::new(
@@ -39,7 +39,13 @@ pub(super) fn derive_redact(
     // Collect each variant's flags
     let mut variant_flags = Vec::with_capacity(e.variants.len());
     for variant in &e.variants {
-        let mut flags = match FieldFlags::extract::<2>(&variant.attrs, top_level_flags.is_some())? {
+        let mut flags = match FieldFlags::extract::<2>(
+            "Redact",
+            &variant.attrs,
+            FieldFlagsParse {
+                skip_allowed: top_level_flags.is_some(),
+            },
+        )? {
             [None, None] => EnumVariantFieldFlags::default(),
 
             [Some(flags), None] => {

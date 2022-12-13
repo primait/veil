@@ -18,5 +18,10 @@ fail_tests! {
     redact_union,
     redact_units,
     redact_skip,
-    redact_missing_all
+    redact_missing_all,
+    pii_empty_struct,
+    pii_inner_flags,
+    pii_multiple_fields,
+    pii_non_struct,
+    pii_unknown_flag
 }

@@ -1,4 +1,7 @@
-use crate::{flags::FieldFlags, UnusedDiagnostic};
+use crate::{
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
+    UnusedDiagnostic,
+};
 use quote::ToTokens;
 use syn::spanned::Spanned;
 
@@ -7,7 +10,7 @@ use syn::spanned::Spanned;
 ///
 /// We try and match as many possible paths as possible because
 /// some macros can output very verbose paths to items.
-fn is_ty_option(ty: &syn::Type) -> bool {
+pub fn is_ty_option(ty: &syn::Type) -> bool {
     if let syn::Type::Path(syn::TypePath { path, .. }) = &ty {
         match path.segments.len() {
             1 if path.segments[0].ident == "Option" => true,
@@ -74,7 +77,13 @@ impl FormatData<'_> {
             // Parse field flags from attributes on this field
             let field_flags = match field.attrs.len() {
                 0 => all_fields_flags,
-                1 => match FieldFlags::extract::<1>(&field.attrs, all_fields_flags.is_some())? {
+                1 => match FieldFlags::extract::<1>(
+                    "Redact",
+                    &field.attrs,
+                    FieldFlagsParse {
+                        skip_allowed: all_fields_flags.is_some(),
+                    },
+                )? {
                     [Some(flags)] => {
                         if flags.variant {
                             return Err(syn::Error::new(
@@ -152,15 +161,19 @@ pub(crate) fn generate_redact_call(
         // This is the one place where we actually track whether the derive macro had any effect! Nice.
         unused.redacted_something();
 
+        let specialization = if is_option {
+            quote! { ::std::option::Option::Some(::veil::private::RedactSpecialization::Option) }
+        } else {
+            quote! { ::std::option::Option::None }
+        };
+
         if field_flags.display {
             // std::fmt::Display
             quote! {
                 ::veil::private::redact(
                     ::veil::private::RedactionTarget::Display(#field_accessor),
-                    ::veil::private::RedactFlags {
-                        is_option: #is_option,
-                        #field_flags
-                    }
+                    ::veil::private::RedactFlags { #field_flags },
+                    #specialization
                 )
             }
         } else {
@@ -168,10 +181,8 @@ pub(crate) fn generate_redact_call(
             quote! {
                 ::veil::private::redact(
                     ::veil::private::RedactionTarget::Debug { this: #field_accessor, alternate },
-                    ::veil::private::RedactFlags {
-                        is_option: #is_option,
-                        #field_flags
-                    }
+                    ::veil::private::RedactFlags { #field_flags },
+                    #specialization
                 )
             }
         }

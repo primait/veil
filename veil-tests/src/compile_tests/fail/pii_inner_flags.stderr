@@ -1,0 +1,5 @@
+error: redaction modifiers are not allowed here, put them on the struct itself
+ --> src/compile_tests/fail/pii_inner_flags.rs:5:5
+  |
+5 |     #[redact(partial)]
+  |     ^

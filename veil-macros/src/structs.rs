@@ -1,4 +1,8 @@
-use crate::{flags::FieldFlags, fmt::FormatData, UnusedDiagnostic};
+use crate::{
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
+    fmt::FormatData,
+    UnusedDiagnostic,
+};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::spanned::Spanned;
@@ -13,7 +17,7 @@ pub(super) fn derive_redact(
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
     let top_level_flags = match attrs.len() {
         0 => None,
-        1 => match FieldFlags::extract::<1>(&attrs, false)? {
+        1 => match FieldFlags::extract::<1>("Redact", &attrs, FieldFlagsParse { skip_allowed: false })? {
             [Some(flags)] => {
                 if flags.variant {
                     return Err(syn::Error::new(
