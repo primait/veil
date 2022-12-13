@@ -95,6 +95,31 @@ enum Country {
 #[derive(Redact)]
 struct TupleStruct(#[redact] u32, #[redact(partial)] u32);
 
+#[derive(Redact)]
+struct GenericStruct<Foo: std::fmt::Debug, Bar: std::fmt::Debug>(Foo, #[redact] Bar);
+
+#[derive(Redact)]
+struct GenericWhereStruct<Foo, Bar>(Foo, #[redact] Bar)
+where
+    Foo: std::fmt::Debug,
+    Bar: std::fmt::Debug;
+
+#[derive(Redact)]
+enum GenericWhereEnum<Foo, Bar>
+where
+    Foo: std::fmt::Debug,
+    Bar: std::fmt::Debug,
+{
+    FooVariant(Foo),
+    BarVariant(#[redact] Bar),
+}
+
+#[derive(Redact)]
+enum GenericEnum<Foo: std::fmt::Debug, Bar: std::fmt::Debug> {
+    FooVariant(Foo),
+    BarVariant(#[redact] Bar),
+}
+
 #[test]
 fn test_credit_card_redacting() {
     println!(
@@ -169,4 +194,131 @@ fn test_redact_all_with_flags() {
 #[test]
 fn test_redact_tuple_struct() {
     println!("{:#?}", TupleStruct(100, 2000000));
+}
+
+#[test]
+fn test_redact_multiple_attributes() {
+    use rand_derive2::RandGen;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    struct MultipleAttributes {
+        #[redact]
+        #[serde(default)]
+        foo: bool,
+        bar: bool,
+    }
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    #[redact(all)]
+    struct MultipleAttributesAll {
+        #[serde(default)]
+        #[redact(partial)]
+        foo: bool,
+        bar: bool,
+    }
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    struct MultipleAttributesTuple(
+        #[redact]
+        #[serde(default)]
+        bool,
+        bool,
+    );
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    #[redact(all)]
+    struct MultipleAttributesAllTuple(
+        #[serde(default)]
+        #[redact(partial)]
+        bool,
+        bool,
+    );
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    enum MultipleAttributesEnum {
+        #[serde(rename = "foo")]
+        #[redact(variant)]
+        Foo,
+
+        #[serde(rename = "bar")]
+        #[redact(all)]
+        Bar {
+            #[serde(default)]
+            #[redact(partial)]
+            foo: bool,
+            bar: bool,
+        },
+
+        #[redact(all)]
+        #[serde(rename = "baz")]
+        Baz(
+            #[serde(default)]
+            #[redact(partial)]
+            bool,
+            bool,
+        ),
+    }
+
+    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[serde(rename_all = "camelCase")]
+    #[redact(all, variant)]
+    enum MultipleAttributesEnumAll {
+        #[serde(rename = "foo")]
+        Foo,
+
+        #[serde(rename = "bar")]
+        #[redact(all)]
+        Bar { foo: bool, bar: bool },
+
+        #[redact(all)]
+        #[serde(rename = "baz")]
+        Baz(bool, bool),
+
+        #[serde(rename = "qux")]
+        #[redact(all)]
+        Qux {
+            #[serde(default)]
+            #[redact(partial)]
+            foo: bool,
+            bar: bool,
+        },
+
+        #[serde(rename = "quux")]
+        #[redact(all)]
+        Quux(
+            #[serde(default)]
+            #[redact(partial)]
+            bool,
+            bool,
+        ),
+    }
+
+    let json = serde_json::json!({
+        "bar": true
+    });
+    let attributes: MultipleAttributesAll = serde_json::from_value(json).unwrap();
+    assert!(!attributes.foo);
+    assert!(attributes.bar);
+
+    macro_rules! test_serde_attributes {
+        {$($ty:ty),*} => {
+            $({
+                let random = <$ty>::generate_random();
+                let json = serde_json::to_string(&random).unwrap();
+                serde_json::from_str::<$ty>(&json).unwrap();
+            })*
+        };
+    }
+    test_serde_attributes! {
+        MultipleAttributes,
+        MultipleAttributesAll,
+        MultipleAttributesEnum,
+        MultipleAttributesEnumAll,
+        MultipleAttributesTuple,
+        MultipleAttributesAllTuple
+    }
 }
