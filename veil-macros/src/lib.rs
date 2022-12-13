@@ -58,8 +58,8 @@ pub fn derive_redact(item: TokenStream) -> TokenStream {
     let item_span = item.span();
 
     let result = match item.data {
-        syn::Data::Struct(s) => structs::derive_redact(s, item.attrs, item.ident, &mut unused),
-        syn::Data::Enum(e) => enums::derive_redact(e, item.attrs, item.ident, &mut unused),
+        syn::Data::Struct(s) => structs::derive_redact(s, item.generics, item.attrs, item.ident, &mut unused),
+        syn::Data::Enum(e) => enums::derive_redact(e, item.generics, item.attrs, item.ident, &mut unused),
         syn::Data::Union(_) => Err(syn::Error::new(item_span, "this trait cannot be derived for unions")),
     };
 
