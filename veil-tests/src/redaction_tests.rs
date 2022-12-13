@@ -147,3 +147,15 @@ fn test_sensitive_tuple_structs() {
         SENSITIVE_DATA[3],
     ));
 }
+
+#[test]
+fn test_display_redaction() {
+    #[derive(Redact)]
+    struct RedactDisplay(#[redact(display)] String);
+
+    #[derive(Redact)]
+    struct RedactDebug(#[redact] String);
+
+    assert_eq!(format!("{:?}", RedactDebug("\"".to_string())), r#"RedactDebug("\"")"#);
+    assert_eq!(format!("{:?}", RedactDisplay("\"".to_string())), r#"RedactDisplay(")"#);
+}

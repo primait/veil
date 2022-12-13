@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 #[repr(transparent)]
 pub struct DisplayDebug(String);
@@ -15,9 +15,6 @@ impl AsRef<str> for DisplayDebug {
 }
 
 pub struct RedactFlags {
-    /// Sourced from [`std::fmt::Formatter::alternate`]
-    pub debug_alternate: bool,
-
     /// Whether the type we're redacting is an Option<T> or not. Poor man's specialization! This is detected
     /// by the proc macro reading the path to the type, so it's not perfect.
     ///
@@ -107,16 +104,31 @@ impl RedactFlags {
     }
 }
 
-pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
+pub enum RedactionTarget<'a> {
+    /// Redact the output of the type's [`std::fmt::Debug`] implementation.
+    Debug {
+        this: &'a dyn Debug,
+
+        /// Sourced from [`std::fmt::Formatter::alternate`]
+        alternate: bool,
+    },
+
+    /// Redact the output of the type's [`std::fmt::Display`] implementation.
+    Display(&'a dyn Display),
+}
+
+pub fn redact(this: RedactionTarget, flags: RedactFlags) -> DisplayDebug {
     let mut redacted = String::new();
+
+    let to_redactable_string = || match this {
+        RedactionTarget::Debug { this, alternate: false } => format!("{:?}", this),
+        RedactionTarget::Debug { this, alternate: true } => format!("{:#?}", this),
+        RedactionTarget::Display(this) => this.to_string(),
+    };
 
     #[cfg(feature = "toggle")]
     if crate::toggle::get_redaction_behavior().is_plaintext() {
-        return DisplayDebug(if flags.debug_alternate {
-            format!("{:#?}", this)
-        } else {
-            format!("{:?}", this)
-        });
+        return DisplayDebug(to_redactable_string());
     }
 
     (|| {
@@ -125,20 +137,16 @@ pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
             return;
         }
 
-        let debug_formatted = if flags.debug_alternate {
-            format!("{:#?}", this)
-        } else {
-            format!("{:?}", this)
-        };
+        let redactable_string = to_redactable_string();
 
-        redacted.reserve(debug_formatted.len());
+        redacted.reserve(redactable_string.len());
 
         // Specialize for Option<T>
         if flags.is_option {
-            if debug_formatted == "None" {
+            if redactable_string == "None" {
                 // We don't need to do any redacting
                 // https://prima.slack.com/archives/C03URH9N43U/p1661423554871499
-            } else if let Some(inner) = debug_formatted
+            } else if let Some(inner) = redactable_string
                 .strip_prefix("Some(")
                 .and_then(|inner| inner.strip_suffix(')'))
             {
@@ -147,15 +155,15 @@ pub fn redact(this: &dyn Debug, flags: RedactFlags) -> DisplayDebug {
                 redacted.push(')');
             } else {
                 // This should never happen, but just in case...
-                flags.redact_full(&debug_formatted, &mut redacted);
+                flags.redact_full(&redactable_string, &mut redacted);
             }
             return;
         }
 
         if flags.partial {
-            flags.redact_partial(&debug_formatted, &mut redacted);
+            flags.redact_partial(&redactable_string, &mut redacted);
         } else {
-            flags.redact_full(&debug_formatted, &mut redacted);
+            flags.redact_full(&redactable_string, &mut redacted);
         }
     })();
 
