@@ -29,10 +29,7 @@ pub(super) fn derive_redact(
                     "at least `#[redact(all, variant)]` is required here to redact all variant names",
                 ));
             } else if flags.display {
-                return Err(syn::Error::new(
-                    attrs[0].span(),
-                    "`#[redact(display)]` is invalid here",
-                ));
+                return Err(syn::Error::new(attrs[0].span(), "`#[redact(display)]` is invalid here"));
             } else {
                 Some(flags)
             }

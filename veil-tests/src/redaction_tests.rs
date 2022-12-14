@@ -169,7 +169,7 @@ fn test_named_display_redaction() {
         #[redact(display)]
         foo: String,
         #[redact]
-        bar: String
+        bar: String,
     }
 
     assert_eq!(
@@ -186,8 +186,8 @@ fn test_enum_display_redaction() {
             #[redact(display)]
             foo: String,
             #[redact]
-            bar: String
-        }
+            bar: String,
+        },
     }
 
     assert_eq!(
