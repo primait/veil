@@ -1,4 +1,4 @@
-error: `#[redact(display)]` is invalid here
+error: `#[redact(display)]` is invalid here, enum variants are always displayed using std::fmt::Display
  --> src/compile_tests/fail/redact_display_enum_variant.rs:5:5
   |
 5 |     #[redact(variant, display)]
