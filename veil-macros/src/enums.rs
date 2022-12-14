@@ -61,7 +61,7 @@ pub(super) fn derive_redact(
                     if flags.display {
                         return Err(syn::Error::new(
                             variant.attrs[0].span(),
-                            "`#[redact(display)]` is invalid here",
+                            "`#[redact(display)]` is invalid here, enum variants are always displayed using std::fmt::Display",
                         ));
                     }
 
@@ -73,7 +73,7 @@ pub(super) fn derive_redact(
                 } else {
                     return Err(syn::Error::new(
                         variant.span(),
-                        "expected `#[redact(all, ...)]` or `#[redact(variant, ...)]`, or both as separate attributes",
+                        "please specify at least `#[redact(all, ...)]` or `#[redact(variant, ...)]` first, or both as separate attributes",
                     ));
                 }
             }
@@ -109,7 +109,7 @@ pub(super) fn derive_redact(
                     } else {
                         return Err(syn::Error::new(
                             variant.span(),
-                            "expected `#[redact(all, ...)]` or `#[redact(variant, ...)]`, or both as separate attributes",
+                            "please specify at least `#[redact(all, ...)]` or `#[redact(variant, ...)]` first, or both as separate attributes",
                         ));
                     }
                 }

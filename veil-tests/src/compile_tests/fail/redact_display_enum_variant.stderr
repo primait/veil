@@ -4,7 +4,7 @@ error: `#[redact(display)]` is invalid here
 5 |     #[redact(variant, display)]
   |     ^
 
-error: expected `#[redact(all, ...)]` or `#[redact(variant, ...)]`, or both as separate attributes
+error: please specify at least `#[redact(all, ...)]` or `#[redact(variant, ...)]` first, or both as separate attributes
   --> src/compile_tests/fail/redact_display_enum_variant.rs:11:5
    |
 11 |     #[redact(display)]
