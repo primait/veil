@@ -18,5 +18,6 @@ fail_tests! {
     redact_union,
     redact_units,
     redact_skip,
-    redact_missing_all
+    redact_missing_all,
+    redact_display_enum_variant
 }

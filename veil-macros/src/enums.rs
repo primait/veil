@@ -28,6 +28,11 @@ pub(super) fn derive_redact(
                     attrs[0].span(),
                     "at least `#[redact(all, variant)]` is required here to redact all variant names",
                 ));
+            } else if flags.display {
+                return Err(syn::Error::new(
+                    attrs[0].span(),
+                    "`#[redact(display)]` is invalid here",
+                ));
             } else {
                 Some(flags)
             }
@@ -56,6 +61,13 @@ pub(super) fn derive_redact(
                         all_fields_flags: Some(flags),
                     }
                 } else if flags.variant {
+                    if flags.display {
+                        return Err(syn::Error::new(
+                            variant.attrs[0].span(),
+                            "`#[redact(display)]` is invalid here",
+                        ));
+                    }
+
                     // #[redact(variant, ...)]
                     EnumVariantFieldFlags {
                         variant_flags: Some(flags),
