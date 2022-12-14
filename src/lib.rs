@@ -247,7 +247,7 @@ mod pii;
 pub use pii::RedactPii;
 
 mod builder;
-pub use builder::{Redactor, RedactorBuilder};
+pub use builder::{Redactor, RedactorBuilder, WrappedPii};
 
 #[cfg(feature = "toggle")]
 mod toggle;

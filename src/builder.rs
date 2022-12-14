@@ -1,4 +1,40 @@
+use std::fmt::{Debug, Display};
 use crate::private::{redact_from_builder, RedactFlags};
+
+/// A wrapped reference to some data that, when formatted as [`Debug`] or [`Display`] (if implemented for `T`), will be redacted.
+///
+/// See [`Redactor::wrap`] for more information.
+pub struct WrappedPii<'a, T> {
+    data: &'a T,
+    flags: &'a RedactFlags,
+}
+impl<T> Display for WrappedPii<'_, T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&redact_from_builder(self.data.to_string(), *self.flags, None))
+    }
+}
+impl<T> Debug for WrappedPii<'_, T>
+where
+    T: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let redactable_string = if f.alternate() {
+            format!("{:#?}", self.data)
+        } else {
+            format!("{:?}", self.data)
+        };
+        f.write_str(&redact_from_builder(redactable_string, *self.flags, None))
+    }
+}
+impl<T> Copy for WrappedPii<'_, T> {}
+impl<T> Clone for WrappedPii<'_, T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 /// The `Redactor` allows for redacting arbitrary strings using a pre-defined set of flags.
 ///
@@ -55,6 +91,35 @@ impl Redactor {
     pub fn and_redact(&self, data: &mut String) -> &Self {
         *data = self.redact(core::mem::take(data));
         self
+    }
+
+    /// Wrap the given data in a [`WrappedPii`], allowing it to be redacted when displayed or debugged.
+    ///
+    /// Currently, the only supported [`Debug`] formats are `{:?}` and `{:#?}`. Other flags will be ignored.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use veil::RedactorBuilder;
+    /// let email = "john.doe@prima.it".to_string();
+    /// let name = "John Doe".to_string();
+    ///
+    /// let redactor = RedactorBuilder::new()
+    ///     .char('X')
+    ///     .partial()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let email = redactor.wrap(&email);
+    /// let name = redactor.wrap(&name);
+    ///
+    /// assert_eq!(
+    ///     format!("{} <{}>", name, email),
+    ///     "JoXX Xoe <johX.XXX@XXXXa.it>"
+    /// );
+    /// ```
+    pub const fn wrap<'a, T>(&'a self, data: &'a T) -> WrappedPii<'a, T> {
+        WrappedPii { flags: &self.0, data }
     }
 }
 
