@@ -195,3 +195,81 @@ fn test_enum_display_redaction() {
         "Foo { foo: ***** \"*******\"!\n*** ****'* *** *******..., bar: \"***** \\\"*******\\\"!\\**** ****'* *** *******...\" }"
     );
 }
+
+#[test]
+fn test_enum_variant_names() {
+    #[derive(Debug)]
+    enum Control {
+        Foo(String),
+        Bar,
+    }
+
+    #[derive(Redact)]
+    enum Redacted {
+        #[redact(variant)]
+        Foo(#[redact] String),
+        Bar,
+    }
+
+    #[derive(Redact)]
+    #[redact(all, variant)]
+    enum RedactedAll {
+        #[redact(skip, variant)]
+        Foo(#[redact] String),
+        #[redact(skip, variant)]
+        Bar,
+    }
+
+    assert_eq!(format!("{:?}", RedactedAll::Bar), format!("{:?}", Redacted::Bar));
+    assert_ne!(
+        format!("{:?}", Redacted::Foo("Hello".to_string())),
+        format!("{:?}", RedactedAll::Foo("Hello".to_string()))
+    );
+    assert_eq!(
+        format!("{:?} {:?}", Control::Foo("Hello".to_string()), Control::Bar),
+        "Foo(\"Hello\") Bar"
+    );
+    assert_eq!(
+        format!("{:?} {:?}", Redacted::Foo("Hello".to_string()), Redacted::Bar),
+        "***(\"*****\") Bar"
+    );
+    assert_eq!(format!("{:?}", Control::Bar), format!("{:?}", Redacted::Bar));
+    assert_ne!(
+        format!("{:?}", Control::Foo("Hello".to_string())),
+        format!("{:?}", Redacted::Foo("Hello".to_string()))
+    );
+}
+
+#[test]
+fn test_struct_name() {
+    #[derive(Debug)]
+    struct Control {
+        #[allow(dead_code)]
+        foo: String,
+    }
+
+    #[derive(Redact)]
+    struct Redacted {
+        #[redact]
+        foo: String,
+    }
+
+    assert_eq!(
+        format!(
+            "{:?}",
+            Control {
+                foo: "Hello".to_string()
+            }
+        ),
+        "Control { foo: \"Hello\" }"
+    );
+    assert_eq!(
+        format!(
+            "{:?}",
+            Redacted {
+                foo: "Hello".to_string()
+            }
+        ),
+        "Redacted { foo: \"*****\" }"
+    );
+}
