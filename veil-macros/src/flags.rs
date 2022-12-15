@@ -97,25 +97,41 @@ pub trait ExtractFlags: Sized + Copy + Default {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+pub enum RedactionLength {
+    /// Redact the entire data.
+    Full,
+
+    /// Redact a portion of the data.
+    Partial,
+
+    /// Whether to redact with a fixed width, ignoring the length of the data.
+    Fixed(NonZeroU8),
+}
+impl quote::ToTokens for RedactionLength {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            RedactionLength::Full => quote! { ::veil::private::RedactionLength::Full }.to_tokens(tokens),
+            RedactionLength::Partial => quote! { ::veil::private::RedactionLength::Partial }.to_tokens(tokens),
+            RedactionLength::Fixed(n) => {
+                let n = n.get();
+                quote! { ::veil::private::RedactionLength::Fixed(::core::num::NonZeroU8::new(#n).unwrap()) }
+                    .to_tokens(tokens)
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct RedactFlags {
-    /// Whether the field is partially or fully redacted.
-    ///
-    /// Incompatible with `fixed`.
-    pub partial: bool,
+    pub redact_length: RedactionLength,
 
     /// The character to use for redacting. Defaults to `*`.
     pub redact_char: char,
-
-    /// Whether to redact with a fixed width, ignoring the length of the data.
-    ///
-    /// Incompatible with `partial`.
-    pub fixed: Option<NonZeroU8>,
 }
 impl Default for RedactFlags {
     fn default() -> Self {
         Self {
-            partial: false,
-            fixed: None,
+            redact_length: RedactionLength::Full,
             redact_char: '*',
         }
     }
@@ -127,7 +143,13 @@ impl ExtractFlags for RedactFlags {
         match meta {
             // #[redact(partial)]
             syn::Meta::Path(path) if path.is_ident("partial") => {
-                self.partial = true;
+                if self.redact_length != RedactionLength::Full {
+                    return TryParseMeta::Err(syn::Error::new_spanned(
+                        path,
+                        "`partial` clashes with an existing redaction length flag",
+                    ));
+                }
+                self.redact_length = RedactionLength::Partial;
             }
 
             // #[redact(with = 'X')]
@@ -137,9 +159,15 @@ impl ExtractFlags for RedactFlags {
             },
 
             // #[redact(fixed = u8)]
-            syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => match kv.lit {
-                syn::Lit::Int(int) => {
-                    self.fixed = Some(
+            syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => {
+                if self.redact_length != RedactionLength::Full {
+                    return TryParseMeta::Err(syn::Error::new_spanned(
+                        kv.path,
+                        "`fixed` clashes with an existing redaction length flag",
+                    ));
+                }
+                if let syn::Lit::Int(int) = kv.lit {
+                    self.redact_length = RedactionLength::Fixed(
                         match int.base10_parse::<u8>().and_then(|int| {
                             NonZeroU8::new(int).ok_or_else(|| {
                                 syn::Error::new_spanned(int, "fixed redacting width must be greater than zero")
@@ -149,9 +177,10 @@ impl ExtractFlags for RedactFlags {
                             Err(err) => return TryParseMeta::Err(err),
                         },
                     )
+                } else {
+                    return TryParseMeta::Err(syn::Error::new_spanned(kv.lit, "expected a character literal"));
                 }
-                _ => return TryParseMeta::Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
-            },
+            }
 
             _ => return TryParseMeta::Unrecognised(meta),
         }
@@ -161,18 +190,14 @@ impl ExtractFlags for RedactFlags {
 impl quote::ToTokens for RedactFlags {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
-            partial,
+            redact_length,
             redact_char,
-            fixed,
             ..
         } = self;
 
-        let fixed = fixed.map(|fixed| fixed.get()).unwrap_or(0);
-
         tokens.extend(quote! {
-            partial: #partial,
-            redact_char: #redact_char,
-            fixed: #fixed,
+            redact_length: #redact_length,
+            redact_char: #redact_char
         });
     }
 }
@@ -259,13 +284,6 @@ impl ExtractFlags for FieldFlags {
                     "`#[redact(skip)]` should not have any other modifiers present",
                 ));
             }
-        }
-
-        if self.redact.partial && self.redact.fixed.is_some() {
-            return Err(syn::Error::new_spanned(
-                attr,
-                "`#[redact(partial)]` and `#[redact(fixed = ...)]` are incompatible",
-            ));
         }
 
         Ok(())

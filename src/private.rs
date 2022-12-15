@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display, Write};
+use std::{
+    fmt::{Debug, Display, Write},
+    num::NonZeroU8,
+};
 
 pub enum RedactSpecialization {
     /// Whether the type we're redacting is an Option<T> or not. Poor man's specialization! This is detected
@@ -18,19 +21,24 @@ pub enum RedactSpecialization {
 }
 
 #[derive(Clone, Copy)]
+pub enum RedactionLength {
+    /// Redact the entire data.
+    Full,
+
+    /// Redact a portion of the data.
+    Partial,
+
+    /// Whether to redact with a fixed width, ignoring the length of the data.
+    Fixed(NonZeroU8),
+}
+
+#[derive(Clone, Copy)]
 pub struct RedactFlags {
-    /// Whether to only partially redact the data.
-    ///
-    /// Incompatible with `fixed`.
-    pub partial: bool,
+    /// How much of the data to redact.
+    pub redact_length: RedactionLength,
 
     /// What character to use for redacting.
     pub redact_char: char,
-
-    /// Whether to redact with a fixed width, ignoring the length of the data.
-    ///
-    /// Incompatible with `partial`.
-    pub fixed: u8,
 }
 impl RedactFlags {
     /// How many characters must a word be for it to be partially redacted?
@@ -140,8 +148,8 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
             return self.this.passthrough(fmt);
         }
 
-        if self.flags.fixed > 0 {
-            return RedactFlags::redact_fixed(fmt, self.flags.fixed as usize, self.flags.redact_char);
+        if let RedactionLength::Fixed(n) = &self.flags.redact_length {
+            return RedactFlags::redact_fixed(fmt, n.get() as usize, self.flags.redact_char);
         }
 
         let redactable_string = self.this.to_string();
@@ -169,7 +177,7 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
             None => {}
         }
 
-        if self.flags.partial {
+        if let RedactionLength::Partial = &self.flags.redact_length {
             self.flags.redact_partial(fmt, &redactable_string)
         } else {
             self.flags.redact_full(fmt, &redactable_string)
