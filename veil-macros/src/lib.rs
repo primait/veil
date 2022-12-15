@@ -10,6 +10,7 @@ mod enums;
 mod flags;
 mod fmt;
 mod redact;
+mod redactable;
 mod sanitize;
 mod structs;
 
@@ -21,6 +22,16 @@ use proc_macro::TokenStream;
 /// See the [crate level documentation](index.html) for flags and modifiers.
 pub fn derive_redact(item: TokenStream) -> TokenStream {
     redact::derive(item)
+}
+
+#[proc_macro_derive(Redactable, attributes(redact))]
+/// Implements [`Redactable`](trait.Redactable.html) for a type.
+///
+/// The type must have a [`Display`](std::fmt::Display) implementation. This is what will be used to redact the type.
+///
+/// See the [crate level documentation](index.html) for flags and modifiers.
+pub fn derive_redactable(item: TokenStream) -> TokenStream {
+    redactable::derive(item)
 }
 
 #[doc(hidden)]

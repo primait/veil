@@ -232,7 +232,12 @@
 //!
 //! These are only checked ONCE for security purposes.
 
-pub use veil_macros::Redact;
+pub use veil_macros::{Redact, Redactable};
+
+mod util;
+
+mod redactable;
+pub use redactable::Redactable;
 
 #[cfg(feature = "toggle")]
 mod toggle;

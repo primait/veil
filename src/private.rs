@@ -1,3 +1,4 @@
+use crate::util::give_me_a_formatter;
 use std::{
     fmt::{Debug, Display, Write},
     num::NonZeroU8,
@@ -183,4 +184,24 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
             self.flags.redact_full(fmt, &redactable_string)
         }
     }
+}
+
+pub fn derived_redactable(this: &dyn Display, flags: RedactFlags) -> String {
+    give_me_a_formatter!(
+        move<'a> {
+            this: &'a dyn Display = this,
+            flags: RedactFlags = flags
+        }
+
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            std::fmt::Debug::fmt(
+                &RedactionFormatter {
+                    this: RedactionTarget::Display(this),
+                    flags: *flags,
+                    specialization: None
+                },
+                fmt
+            )
+        }
+    )
 }

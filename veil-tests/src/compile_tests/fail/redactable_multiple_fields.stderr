@@ -1,0 +1,5 @@
+error: this trait cannot be derived for structs with multiple fields
+ --> src/compile_tests/fail/redactable_multiple_fields.rs:4:1
+  |
+4 | struct Foo {
+  | ^^^^^^

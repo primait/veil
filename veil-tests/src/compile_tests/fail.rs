@@ -20,5 +20,10 @@ fail_tests! {
     redact_skip,
     redact_missing_all,
     redact_display_enum_variant,
-    redact_incompatible_flags
+    redact_incompatible_flags,
+    redactable_empty_struct,
+    redactable_inner_flags,
+    redactable_multiple_fields,
+    redactable_non_struct,
+    redactable_unknown_flag
 }
