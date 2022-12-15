@@ -1,47 +1,48 @@
 use std::num::NonZeroU8;
 use syn::spanned::Spanned;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct FieldFlags {
-    /// Whether to blanket redact everything (fields, variants)
-    pub all: bool,
-
-    /// Redacts the name of this enum variant, if applicable.
-    pub variant: bool,
-
-    /// Whether the field is partially or fully redacted.
-    ///
-    /// Incompatible with `fixed`.
-    pub partial: bool,
-
-    /// The character to use for redacting. Defaults to `*`.
-    pub redact_char: char,
-
-    /// Whether to redact with a fixed width, ignoring the length of the data.
-    ///
-    /// Incompatible with `partial`.
-    pub fixed: Option<NonZeroU8>,
-
-    /// Whether to skip redaction.
-    ///
-    /// Only allowed if this field is affected by a `#[redact(all)]` attribute.
-    ///
-    /// Fields are not redacted by default unless their parent is marked as `#[redact(all)]`, and this flag turns off that redaction for this specific field.
-    pub skip: bool,
-
-    /// Whether to use the type's [`std::fmt::Display`] implementation instead of [`std::fmt::Debug`].
-    pub display: bool,
+pub struct FieldFlagsParse {
+    pub skip_allowed: bool,
 }
-impl FieldFlags {
-    /// Returns a list of `FieldFlags` parsed from an attribute.
-    ///
-    /// `AMOUNT` is the maximum number of attributes that should be parsed.
-    ///
-    /// `skip_allowed` should be `true` if `#[redact(all)]` is present and this field is affected by it.
-    /// Otherwise, `#[redact(skip)]` is not allowed.
-    pub fn extract<const AMOUNT: usize>(
+
+pub enum TryParseMeta {
+    Consumed,
+    Unrecognised(syn::Meta),
+    Err(syn::Error),
+}
+
+pub trait ExtractFlags: Sized + Copy + Default {
+    type Options;
+
+    fn try_parse_meta(&mut self, meta: syn::Meta) -> TryParseMeta;
+
+    fn parse_meta(
+        &mut self,
+        derive_name: &'static str,
+        attr: &syn::Attribute,
+        meta: syn::Meta,
+    ) -> Result<(), syn::Error> {
+        match self.try_parse_meta(meta) {
+            TryParseMeta::Consumed => Ok(()),
+            TryParseMeta::Err(err) => Err(err),
+            TryParseMeta::Unrecognised(meta) => match meta {
+                // Anything we don't expect
+                syn::Meta::List(_) => Err(syn::Error::new_spanned(
+                    attr,
+                    format!("unexpected list for `{}` attribute", derive_name),
+                )),
+                _ => Err(syn::Error::new_spanned(
+                    attr,
+                    format!("unknown modifier for `{}` attribute", derive_name),
+                )),
+            },
+        }
+    }
+
+    fn extract<const AMOUNT: usize>(
+        derive_name: &'static str,
         attrs: &[syn::Attribute],
-        skip_allowed: bool,
+        options: Self::Options,
     ) -> Result<[Option<Self>; AMOUNT], syn::Error> {
         let mut extracted = [None; AMOUNT];
         let mut head = 0;
@@ -54,27 +55,8 @@ impl FieldFlags {
                 ));
             }
 
-            if let Some(flags) = Self::parse(attr)? {
-                if flags.skip {
-                    if !skip_allowed {
-                        return Err(syn::Error::new(attr.span(), "`#[redact(skip)]` is not allowed here"));
-                    }
-
-                    // It doesn't make sense for `skip` to be present with any other flags.
-                    // We'll throw an error if it is.
-                    let valid_skip_flags = FieldFlags {
-                        skip: true,
-                        variant: flags.variant,
-                        ..Default::default()
-                    };
-                    if flags != valid_skip_flags {
-                        return Err(syn::Error::new(
-                            attr.span(),
-                            "`#[redact(skip)]` should not have any other modifiers present",
-                        ));
-                    }
-                }
-
+            if let Some(flags) = Self::parse(derive_name, attr)? {
+                flags.validate(attr, &options)?;
                 extracted[head] = Some(flags);
                 head += 1;
             }
@@ -83,8 +65,8 @@ impl FieldFlags {
         Ok(extracted)
     }
 
-    fn parse(attr: &syn::Attribute) -> Result<Option<Self>, syn::Error> {
-        let mut flags = FieldFlags::default();
+    fn parse(derive_name: &'static str, attr: &syn::Attribute) -> Result<Option<Self>, syn::Error> {
+        let mut flags = Self::default();
 
         // The modifiers could be a single value or a list, so we need to handle both cases.
         let modifiers = match attr.parse_meta()? {
@@ -103,89 +85,87 @@ impl FieldFlags {
 
         // Now we can finally process each modifier.
         for meta in modifiers {
-            match meta {
-                // #[redact(all)]
-                syn::Meta::Path(path) if path.is_ident("all") => {
-                    flags.all = true;
-                }
-
-                // #[redact(skip)]
-                syn::Meta::Path(path) if path.is_ident("skip") => {
-                    flags.skip = true;
-                }
-
-                // #[redact(partial)]
-                syn::Meta::Path(path) if path.is_ident("partial") => {
-                    flags.partial = true;
-                }
-
-                // #[redact(variant)]
-                syn::Meta::Path(path) if path.is_ident("variant") => {
-                    flags.variant = true;
-                }
-
-                // #[redact(display)]
-                syn::Meta::Path(path) if path.is_ident("display") => {
-                    flags.display = true;
-                }
-
-                // #[redact(with = 'X')]
-                syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.lit {
-                    syn::Lit::Char(with) => flags.redact_char = with.value(),
-                    _ => return Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
-                },
-
-                // #[redact(fixed = u8)]
-                syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => match kv.lit {
-                    syn::Lit::Int(int) => {
-                        flags.fixed = Some(NonZeroU8::new(int.base10_parse::<u8>()?).ok_or_else(|| {
-                            syn::Error::new_spanned(int, "fixed redacting width must be greater than zero")
-                        })?)
-                    }
-                    _ => return Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
-                },
-
-                // Anything we don't expect
-                syn::Meta::List(_) => {
-                    return Err(syn::Error::new_spanned(attr, "unexpected list for `Redact` attribute"))
-                }
-                _ => return Err(syn::Error::new_spanned(attr, "unknown modifier for `Redact` attribute")),
-            }
-        }
-
-        if flags.partial && flags.fixed.is_some() {
-            return Err(syn::Error::new_spanned(
-                attr,
-                "`#[redact(partial)]` and `#[redact(fixed = ...)]` are incompatible",
-            ));
+            flags.parse_meta(derive_name, attr, meta)?;
         }
 
         Ok(Some(flags))
     }
+
+    fn validate(&self, _attr: &syn::Attribute, _options: &Self::Options) -> Result<(), syn::Error> {
+        Ok(())
+    }
 }
-impl Default for FieldFlags {
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct RedactFlags {
+    /// Whether the field is partially or fully redacted.
+    ///
+    /// Incompatible with `fixed`.
+    pub partial: bool,
+
+    /// The character to use for redacting. Defaults to `*`.
+    pub redact_char: char,
+
+    /// Whether to redact with a fixed width, ignoring the length of the data.
+    ///
+    /// Incompatible with `partial`.
+    pub fixed: Option<NonZeroU8>,
+}
+impl Default for RedactFlags {
     fn default() -> Self {
         Self {
             partial: false,
             fixed: None,
             redact_char: '*',
-            variant: false,
-            all: false,
-            skip: false,
-            display: false,
         }
     }
 }
-impl quote::ToTokens for FieldFlags {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        assert!(!self.skip, "internal error: skip flag should not be set here");
+impl ExtractFlags for RedactFlags {
+    type Options = ();
 
+    fn try_parse_meta(&mut self, meta: syn::Meta) -> TryParseMeta {
+        match meta {
+            // #[redact(partial)]
+            syn::Meta::Path(path) if path.is_ident("partial") => {
+                self.partial = true;
+            }
+
+            // #[redact(with = 'X')]
+            syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.lit {
+                syn::Lit::Char(with) => self.redact_char = with.value(),
+                _ => return TryParseMeta::Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
+            },
+
+            // #[redact(fixed = u8)]
+            syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => match kv.lit {
+                syn::Lit::Int(int) => {
+                    self.fixed = Some(
+                        match int.base10_parse::<u8>().and_then(|int| {
+                            NonZeroU8::new(int).ok_or_else(|| {
+                                syn::Error::new_spanned(int, "fixed redacting width must be greater than zero")
+                            })
+                        }) {
+                            Ok(fixed) => fixed,
+                            Err(err) => return TryParseMeta::Err(err),
+                        },
+                    )
+                }
+                _ => return TryParseMeta::Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
+            },
+
+            _ => return TryParseMeta::Unrecognised(meta),
+        }
+        TryParseMeta::Consumed
+    }
+}
+impl quote::ToTokens for RedactFlags {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
             partial,
             redact_char,
             fixed,
             ..
-        } = *self;
+        } = self;
 
         let fixed = fixed.map(|fixed| fixed.get()).unwrap_or(0);
 
@@ -194,5 +174,106 @@ impl quote::ToTokens for FieldFlags {
             redact_char: #redact_char,
             fixed: #fixed,
         });
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
+pub struct FieldFlags {
+    /// Whether to blanket redact everything (fields, variants)
+    pub all: bool,
+
+    /// Redacts the name of this enum variant, if applicable.
+    pub variant: bool,
+
+    /// Whether to skip redaction.
+    ///
+    /// Only allowed if this field is affected by a `#[redact(all)]` attribute.
+    ///
+    /// Fields are not redacted by default unless their parent is marked as `#[redact(all)]`, and this flag turns off that redaction for this specific field.
+    pub skip: bool,
+
+    /// Whether to use the type's [`Display`] implementation instead of [`Debug`].
+    pub display: bool,
+
+    /// Flags that modify the redaction behavior.
+    pub redact: RedactFlags,
+}
+impl ExtractFlags for FieldFlags {
+    type Options = FieldFlagsParse;
+
+    fn try_parse_meta(&mut self, meta: syn::Meta) -> TryParseMeta {
+        // First try to parse the redaction flags.
+        let meta = match self.redact.try_parse_meta(meta) {
+            // This was a redaction flag, so we don't need to do anything else.
+            // OR
+            // This was an error, so we need to propagate it.
+            result @ (TryParseMeta::Consumed | TryParseMeta::Err(_)) => return result,
+
+            // This was not a redaction flag, so we need to continue processing.
+            TryParseMeta::Unrecognised(meta) => meta,
+        };
+
+        match meta {
+            // #[redact(all)]
+            syn::Meta::Path(path) if path.is_ident("all") => {
+                self.all = true;
+            }
+
+            // #[redact(skip)]
+            syn::Meta::Path(path) if path.is_ident("skip") => {
+                self.skip = true;
+            }
+
+            // #[redact(variant)]
+            syn::Meta::Path(path) if path.is_ident("variant") => {
+                self.variant = true;
+            }
+
+            // #[redact(display)]
+            syn::Meta::Path(path) if path.is_ident("display") => {
+                self.display = true;
+            }
+
+            _ => return TryParseMeta::Unrecognised(meta),
+        }
+
+        TryParseMeta::Consumed
+    }
+
+    fn validate(&self, attr: &syn::Attribute, options: &Self::Options) -> Result<(), syn::Error> {
+        if self.skip {
+            if !options.skip_allowed {
+                return Err(syn::Error::new(attr.span(), "`#[redact(skip)]` is not allowed here"));
+            }
+
+            // It doesn't make sense for `skip` to be present with any other flags.
+            // We'll throw an error if it is.
+            let valid_skip_flags = FieldFlags {
+                skip: true,
+                variant: self.variant,
+                ..Default::default()
+            };
+            if self != &valid_skip_flags {
+                return Err(syn::Error::new(
+                    attr.span(),
+                    "`#[redact(skip)]` should not have any other modifiers present",
+                ));
+            }
+        }
+
+        if self.redact.partial && self.redact.fixed.is_some() {
+            return Err(syn::Error::new_spanned(
+                attr,
+                "`#[redact(partial)]` and `#[redact(fixed = ...)]` are incompatible",
+            ));
+        }
+
+        Ok(())
+    }
+}
+impl quote::ToTokens for FieldFlags {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        assert!(!self.skip, "internal error: skip flag should not be set here");
+        self.redact.to_tokens(tokens)
     }
 }

@@ -1,7 +1,6 @@
 use crate::{
-    flags::FieldFlags,
-    fmt::{self, FormatData},
-    UnusedDiagnostic,
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
+    fmt::{self, FormatData}, redact::UnusedDiagnostic,
 };
 use proc_macro::TokenStream;
 use quote::ToTokens;
@@ -21,7 +20,7 @@ pub(super) fn derive_redact(
     unused: &mut UnusedDiagnostic,
 ) -> Result<TokenStream, syn::Error> {
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
-    let top_level_flags = match FieldFlags::extract::<1>(&attrs, false)? {
+    let top_level_flags = match FieldFlags::extract::<1>("Redact", &attrs, FieldFlagsParse { skip_allowed: false })? {
         [Some(flags)] => {
             if !flags.all || !flags.variant {
                 return Err(syn::Error::new(
@@ -41,7 +40,13 @@ pub(super) fn derive_redact(
     // Collect each variant's flags
     let mut variant_flags = Vec::with_capacity(e.variants.len());
     for variant in &e.variants {
-        let mut flags = match FieldFlags::extract::<2>(&variant.attrs, top_level_flags.is_some())? {
+        let mut flags = match FieldFlags::extract::<2>(
+            "Redact",
+            &variant.attrs,
+            FieldFlagsParse {
+                skip_allowed: top_level_flags.is_some(),
+            },
+        )? {
             [None, None] => EnumVariantFieldFlags::default(),
 
             [Some(flags), None] => {
@@ -163,7 +168,17 @@ pub(super) fn derive_redact(
         // Variant name redacting
         let variant_name = variant.ident.to_string();
         let variant_name = if let Some(flags) = &flags.variant_flags {
-            fmt::generate_redact_call(quote! { &#variant_name }, false, flags, unused)
+            // The variant name must always be formatted with the Display impl.
+            let flags = FieldFlags {
+                display: true,
+                ..*flags
+            };
+
+            // Generate the RedactionFormatter expression for the variant name
+            let redact = fmt::generate_redact_call(quote! { &#variant_name }, false, &flags, unused);
+
+            // Because the other side is expecting a &str, we need to convert the RedactionFormatter to a String (and then to a &str)
+            quote! { format!("{:?}", #redact).as_str() }
         } else {
             variant_name.into_token_stream()
         };
@@ -182,7 +197,7 @@ pub(super) fn derive_redact(
                         "unit structs do not need redacting as they contain no data",
                     ));
                 } else {
-                    quote! { write!(f, "{:?}", #variant_name)? }
+                    quote! { fmt.write_str(#variant_name)? }
                 }
             }
         });
@@ -191,9 +206,9 @@ pub(super) fn derive_redact(
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     Ok(quote! {
         impl #impl_generics ::std::fmt::Debug for #name_ident #ty_generics #where_clause {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+            fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 #[allow(unused)] // Suppresses unused warning with `#[redact(display)]`
-                let alternate = f.alternate();
+                let alternate = fmt.alternate();
 
                 match self {
                     #(Self::#variant_idents #variant_destructures => { #variant_bodies; },)*
