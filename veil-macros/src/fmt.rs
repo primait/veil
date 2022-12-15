@@ -1,5 +1,6 @@
 use crate::{
-    flags::{ExtractFlags, FieldFlags, FieldFlagsParse}, redact::UnusedDiagnostic,
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
+    redact::UnusedDiagnostic,
 };
 use quote::ToTokens;
 use syn::spanned::Spanned;

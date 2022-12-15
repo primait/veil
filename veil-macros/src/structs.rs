@@ -1,6 +1,7 @@
 use crate::{
     flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
-    fmt::FormatData, redact::UnusedDiagnostic,
+    fmt::FormatData,
+    redact::UnusedDiagnostic,
 };
 use proc_macro::TokenStream;
 use quote::ToTokens;
