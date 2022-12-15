@@ -41,7 +41,7 @@ steps:
   environment:
     RUSTDOCFLAGS: --cfg docsci
   depends_on:
-  - cargo-clippy-ci
+  - cargo-format
 
 - name: cargo-clippy-ci
   image: rust:1.64
