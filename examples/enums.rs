@@ -16,7 +16,7 @@ enum CreditCardIssuer {
     #[redact(variant, skip)] // Don't redact the name of this variant
     Other(
         #[redact] // But do redact the contents of this field!
-        String
+        String,
     ),
 }
 

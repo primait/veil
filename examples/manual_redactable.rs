@@ -5,8 +5,7 @@ use veil::Redactable;
 //
 // The `Redactable` trait requires that a type implements `std::fmt::Display`, as this is what will be used to redact the type.
 
-#[derive(Redactable)]
-#[derive(Debug)] // `Redactable` doesn't touch `Debug` at all, so you can still derive it.
+#[derive(Redactable, Debug)] // `Redactable` doesn't touch `Debug` at all, so you can still derive it.
 #[redact(with = 'X', partial)] // All the modifier flags you know and love from the `Redact` derive macro are also available here.
 struct EmailAddress(String);
 

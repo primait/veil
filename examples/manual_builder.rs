@@ -1,4 +1,4 @@
-use veil::{RedactorBuilder, Redactor};
+use veil::{Redactor, RedactorBuilder};
 
 fn main() {
     // Build a new Redactor.
