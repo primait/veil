@@ -1,5 +1,8 @@
-#![deny(missing_docs)]
-#![deny(rustdoc::broken_intra_doc_links)]
+#![cfg_attr(not(docsci), warn(missing_docs))]
+#![cfg_attr(not(docsci), warn(rustdoc::broken_intra_doc_links))]
+#![cfg_attr(docsci, deny(missing_docs))]
+#![cfg_attr(docsci, deny(rustdoc::broken_intra_doc_links))]
+
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! Implements [`Debug`] for a struct or enum variant, with certain fields redacted.
