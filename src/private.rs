@@ -41,10 +41,10 @@ impl RedactFlags {
     /// Maximum number of characters to expose at the beginning and end of a partial redact.
     const MAX_PARTIAL_EXPOSE: usize = 3;
 
-    pub(crate) fn redact_partial(&self, fmt: &mut std::fmt::Formatter, str: &str) -> std::fmt::Result {
-        let count = str.chars().filter(|char| char.is_alphanumeric()).count();
+    pub(crate) fn redact_partial(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
+        let count = to_redact.chars().filter(|char| char.is_alphanumeric()).count();
         if count < Self::MIN_PARTIAL_CHARS {
-            for char in str.chars() {
+            for char in to_redact.chars() {
                 if char.is_alphanumeric() {
                     fmt.write_char(self.redact_char)?;
                 } else {
@@ -57,7 +57,7 @@ impl RedactFlags {
 
             let mut prefix_gas = redact_count;
             let mut middle_gas = count - redact_count - redact_count;
-            for char in str.chars() {
+            for char in to_redact.chars() {
                 if char.is_alphanumeric() {
                     if prefix_gas > 0 {
                         prefix_gas -= 1;
@@ -76,8 +76,8 @@ impl RedactFlags {
         Ok(())
     }
 
-    pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, str: &str) -> std::fmt::Result {
-        for char in str.chars() {
+    pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
+        for char in to_redact.chars() {
             if char.is_whitespace() || !char.is_alphanumeric() {
                 fmt.write_char(char)?;
             } else {
