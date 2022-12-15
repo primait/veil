@@ -62,8 +62,11 @@ pub(super) fn derive_redact(
     Ok(quote! {
         impl #impl_generics ::std::fmt::Debug for #name_ident #ty_generics #where_clause {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                let debug_alternate = f.alternate();
+                #[allow(unused)] // Suppresses unused warning with `#[redact(display)]`
+                let alternate = f.alternate();
+
                 #impl_debug;
+
                 Ok(())
             }
         }

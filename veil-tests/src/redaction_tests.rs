@@ -12,6 +12,8 @@ pub const SENSITIVE_DATA: &[&str] = &[
     "SensitiveVariant",
 ];
 
+const DEBUGGY_PHRASE: &str = "Hello \"William\"!\nAnd here's the newline...";
+
 pub fn assert_has_sensitive_data<T: std::fmt::Debug>(data: T) {
     for redacted in [format!("{data:?}"), format!("{data:#?}")] {
         assert!(
@@ -146,4 +148,50 @@ fn test_sensitive_tuple_structs() {
         SENSITIVE_DATA[2],
         SENSITIVE_DATA[3],
     ));
+}
+
+#[test]
+fn test_display_redaction() {
+    #[derive(Redact)]
+    struct RedactDisplay(#[redact(display)] String);
+
+    #[derive(Redact)]
+    struct RedactDebug(#[redact] String);
+
+    assert_eq!(format!("{:?}", RedactDebug("\"".to_string())), r#"RedactDebug("\"")"#);
+    assert_eq!(format!("{:?}", RedactDisplay("\"".to_string())), r#"RedactDisplay(")"#);
+}
+
+#[test]
+fn test_named_display_redaction() {
+    #[derive(Redact)]
+    struct RedactMultipleNamedDisplay {
+        #[redact(display)]
+        foo: String,
+        #[redact]
+        bar: String,
+    }
+
+    assert_eq!(
+        format!("{:?}", RedactMultipleNamedDisplay { foo: DEBUGGY_PHRASE.to_string(), bar: DEBUGGY_PHRASE.to_string() }),
+        "RedactMultipleNamedDisplay { foo: ***** \"*******\"!\n*** ****'* *** *******..., bar: \"***** \\\"*******\\\"!\\**** ****'* *** *******...\" }"
+    );
+}
+
+#[test]
+fn test_enum_display_redaction() {
+    #[derive(Redact)]
+    enum RedactEnum {
+        Foo {
+            #[redact(display)]
+            foo: String,
+            #[redact]
+            bar: String,
+        },
+    }
+
+    assert_eq!(
+        format!("{:?}", RedactEnum::Foo { foo: DEBUGGY_PHRASE.to_string(), bar: DEBUGGY_PHRASE.to_string() }),
+        "Foo { foo: ***** \"*******\"!\n*** ****'* *** *******..., bar: \"***** \\\"*******\\\"!\\**** ****'* *** *******...\" }"
+    );
 }

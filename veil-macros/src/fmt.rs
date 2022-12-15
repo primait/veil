@@ -152,12 +152,28 @@ pub(crate) fn generate_redact_call(
         // This is the one place where we actually track whether the derive macro had any effect! Nice.
         unused.redacted_something();
 
-        quote! {
-            ::veil::private::redact(#field_accessor, ::veil::private::RedactFlags {
-                debug_alternate,
-                is_option: #is_option,
-                #field_flags
-            })
+        if field_flags.display {
+            // std::fmt::Display
+            quote! {
+                ::veil::private::redact(
+                    ::veil::private::RedactionTarget::Display(#field_accessor),
+                    ::veil::private::RedactFlags {
+                        is_option: #is_option,
+                        #field_flags
+                    }
+                )
+            }
+        } else {
+            // std::fmt::Debug
+            quote! {
+                ::veil::private::redact(
+                    ::veil::private::RedactionTarget::Debug { this: #field_accessor, alternate },
+                    ::veil::private::RedactFlags {
+                        is_option: #is_option,
+                        #field_flags
+                    }
+                )
+            }
         }
     } else {
         field_accessor

@@ -62,6 +62,25 @@ struct RedactAllWithFlags {
 }
 
 #[derive(Redact)]
+#[redact(all, partial, with = 'X', display)]
+struct RedactAllWithFlagsDisplay {
+    field: String,
+
+    #[redact(skip)]
+    field2: String,
+
+    field3: String,
+}
+
+#[derive(Redact)]
+struct RedactNamedDisplay {
+    #[redact(display)]
+    field: String,
+    #[redact]
+    field2: String,
+}
+
+#[derive(Redact)]
 enum CreditCardIssuer {
     #[redact(variant)]
     Visa {
@@ -76,7 +95,7 @@ enum CreditCardIssuer {
     MasterCard,
 
     #[redact(variant)]
-    #[redact(all, fixed = 6, with = '$')]
+    #[redact(all, fixed = 6, with = '$', display)]
     SecretAgentCard {
         secret_data_1: String,
         secret_data_2: String,

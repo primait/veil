@@ -28,6 +28,9 @@ pub struct FieldFlags {
     ///
     /// Fields are not redacted by default unless their parent is marked as `#[redact(all)]`, and this flag turns off that redaction for this specific field.
     pub skip: bool,
+
+    /// Whether to use the type's [`std::fmt::Display`] implementation instead of [`std::fmt::Debug`].
+    pub display: bool,
 }
 impl FieldFlags {
     /// Returns a list of `FieldFlags` parsed from an attribute.
@@ -121,6 +124,11 @@ impl FieldFlags {
                     flags.variant = true;
                 }
 
+                // #[redact(display)]
+                syn::Meta::Path(path) if path.is_ident("display") => {
+                    flags.display = true;
+                }
+
                 // #[redact(with = 'X')]
                 syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.lit {
                     syn::Lit::Char(with) => flags.redact_char = with.value(),
@@ -164,6 +172,7 @@ impl Default for FieldFlags {
             variant: false,
             all: false,
             skip: false,
+            display: false,
         }
     }
 }
