@@ -166,7 +166,7 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
                 }
             }
 
-            _ => {}
+            None => {}
         }
 
         if self.flags.partial {
