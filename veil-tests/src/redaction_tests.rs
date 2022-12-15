@@ -2,7 +2,7 @@
 
 #![cfg_attr(not(test), allow(unused))]
 
-use veil::Redact;
+use veil::{Redact, Redactable};
 
 pub const SENSITIVE_DATA: &[&str] = &[
     "William",
@@ -194,6 +194,45 @@ fn test_enum_display_redaction() {
         format!("{:?}", RedactEnum::Foo { foo: DEBUGGY_PHRASE.to_string(), bar: DEBUGGY_PHRASE.to_string() }),
         "Foo { foo: ***** \"*******\"!\n*** ****'* *** *******..., bar: \"***** \\\"*******\\\"!\\**** ****'* *** *******...\" }"
     );
+}
+
+#[test]
+fn test_derive_sensitive() {
+    #[derive(Redactable)]
+    struct SensitiveString(String);
+    impl std::fmt::Display for SensitiveString {
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(fmt)
+        }
+    }
+
+    let sensitive = SensitiveString(SENSITIVE_DATA[0].to_string());
+
+    assert_no_sensitive_data(sensitive.redact());
+
+    let mut buffer = String::new();
+    sensitive.redact_into(&mut buffer).unwrap();
+    assert_no_sensitive_data(buffer);
+}
+
+#[test]
+fn test_derive_sensitive_modifiers() {
+    #[derive(Redactable)]
+    #[redact(fixed = 3, with = '-')]
+    struct SensitiveString(String);
+    impl std::fmt::Display for SensitiveString {
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(fmt)
+        }
+    }
+
+    let sensitive = SensitiveString(SENSITIVE_DATA[0].to_string());
+
+    assert_eq!(sensitive.redact(), "---");
+
+    let mut buffer = String::new();
+    sensitive.redact_into(&mut buffer).unwrap();
+    assert_eq!(buffer, "---");
 }
 
 #[test]
