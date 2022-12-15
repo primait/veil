@@ -18,8 +18,8 @@ fn test_code_coverage_for_errors() {
         code_coverage: Vec<&'b OsStr>,
     }
     impl std::fmt::Debug for ErrorMessage<'_, '_> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            f.debug_struct("ErrorMessage")
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fmt.debug_struct("ErrorMessage")
                 .field(
                     "message",
                     &self
@@ -100,7 +100,7 @@ fn test_code_coverage_for_errors() {
         macro_src_files.push(SourceFile::new(path).expect("Failed to read veil-macros src file"));
     }
 
-    let re_syn_error = regex::Regex::new(r#"syn::Error::new\(\s*.+?,\s*"(.+?)",?\s*\)"#).unwrap();
+    let re_syn_error = regex::Regex::new(r#"syn::Error::new(?:_spanned)?\(\s*.+?,\s*"(.+?)",?\s*\)"#).unwrap();
     for src in macro_src_files.iter() {
         for cap in re_syn_error.captures_iter(&src.contents) {
             let error_msg = cap.get(1).unwrap();
