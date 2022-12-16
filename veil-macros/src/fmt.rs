@@ -1,4 +1,7 @@
-use crate::{flags::FieldFlags, UnusedDiagnostic};
+use crate::{
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
+    redact::UnusedDiagnostic,
+};
 use quote::ToTokens;
 use syn::spanned::Spanned;
 
@@ -74,7 +77,13 @@ impl FormatData<'_> {
             // Parse field flags from attributes on this field
             let field_flags = match field.attrs.len() {
                 0 => all_fields_flags,
-                1 => match FieldFlags::extract::<1>(&field.attrs, all_fields_flags.is_some())? {
+                1 => match FieldFlags::extract::<1>(
+                    "Redact",
+                    &field.attrs,
+                    FieldFlagsParse {
+                        skip_allowed: all_fields_flags.is_some(),
+                    },
+                )? {
                     [Some(flags)] => {
                         if flags.variant {
                             return Err(syn::Error::new(
@@ -120,7 +129,7 @@ impl FormatData<'_> {
                 let field_names = named.iter().map(|field| field.ident.as_ref().unwrap().to_string());
 
                 quote! {
-                    f.debug_struct(&#name.as_ref())
+                    fmt.debug_struct(#name)
                     #(
                         .field(#field_names, &#field_bodies)
                     )*
@@ -130,7 +139,7 @@ impl FormatData<'_> {
 
             Self::FieldsUnnamed(syn::FieldsUnnamed { .. }) => {
                 quote! {
-                    f.debug_tuple(&#name.as_ref())
+                    fmt.debug_tuple(#name)
                     #(
                         .field(&#field_bodies)
                     )*
@@ -152,27 +161,29 @@ pub(crate) fn generate_redact_call(
         // This is the one place where we actually track whether the derive macro had any effect! Nice.
         unused.redacted_something();
 
+        let specialization = if is_option {
+            quote! { ::std::option::Option::Some(::veil::private::RedactSpecialization::Option) }
+        } else {
+            quote! { ::std::option::Option::None }
+        };
+
         if field_flags.display {
             // std::fmt::Display
             quote! {
-                ::veil::private::redact(
-                    ::veil::private::RedactionTarget::Display(#field_accessor),
-                    ::veil::private::RedactFlags {
-                        is_option: #is_option,
-                        #field_flags
-                    }
-                )
+                &::veil::private::RedactionFormatter {
+                    this: ::veil::private::RedactionTarget::Display(#field_accessor),
+                    flags: ::veil::private::RedactFlags { #field_flags },
+                    specialization: #specialization
+                }
             }
         } else {
             // std::fmt::Debug
             quote! {
-                ::veil::private::redact(
-                    ::veil::private::RedactionTarget::Debug { this: #field_accessor, alternate },
-                    ::veil::private::RedactFlags {
-                        is_option: #is_option,
-                        #field_flags
-                    }
-                )
+                &::veil::private::RedactionFormatter {
+                    this: ::veil::private::RedactionTarget::Debug { this: #field_accessor, alternate },
+                    flags: ::veil::private::RedactFlags { #field_flags },
+                    specialization: #specialization
+                }
             }
         }
     } else {

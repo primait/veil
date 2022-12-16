@@ -10,7 +10,6 @@ fail_tests! {
     redact_all_on_field,
     redact_all_variant_on_variant,
     redact_enum_without_variant,
-    redact_partial_fixed,
     redact_too_many,
     redact_unused,
     redact_variant_on_field,
@@ -19,5 +18,6 @@ fail_tests! {
     redact_units,
     redact_skip,
     redact_missing_all,
-    redact_display_enum_variant
+    redact_display_enum_variant,
+    redact_incompatible_flags
 }

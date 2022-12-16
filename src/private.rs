@@ -1,26 +1,15 @@
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display, Write},
+    num::NonZeroU8,
+};
 
-#[repr(transparent)]
-pub struct DisplayDebug(String);
-impl std::fmt::Debug for DisplayDebug {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0.as_str())
-    }
-}
-impl AsRef<str> for DisplayDebug {
-    #[inline(always)]
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-pub struct RedactFlags {
+pub enum RedactSpecialization {
     /// Whether the type we're redacting is an Option<T> or not. Poor man's specialization! This is detected
     /// by the proc macro reading the path to the type, so it's not perfect.
     ///
     /// This could be improved & rid of in a number of different ways in the future:
     ///
-    /// * Once specialization is stabilized, we can use a trait to override redacting behaviour for some types,
+    /// * Once specialization is stabilized, we can use a trait to override redacting behavior for some types,
     /// one of which would be Option<T>.
     ///
     /// * Once std::ptr::metadata and friends are stabilized, we could use it to unsafely cast the dyn Debug pointer
@@ -28,20 +17,28 @@ pub struct RedactFlags {
     ///
     /// * Once trait upcasting is stabilized, we could use it to upcast the dyn Debug pointer to a dyn Any and then
     /// downcast it to a concrete Option<T> and redact it directly.
-    pub is_option: bool,
+    Option,
+}
 
-    /// Whether to only partially redact the data.
-    ///
-    /// Incompatible with `fixed`.
-    pub partial: bool,
+#[derive(Clone, Copy)]
+pub enum RedactionLength {
+    /// Redact the entire data.
+    Full,
+
+    /// Redact a portion of the data.
+    Partial,
+
+    /// Whether to redact with a fixed width, ignoring the length of the data.
+    Fixed(NonZeroU8),
+}
+
+#[derive(Clone, Copy)]
+pub struct RedactFlags {
+    /// How much of the data to redact.
+    pub redact_length: RedactionLength,
 
     /// What character to use for redacting.
     pub redact_char: char,
-
-    /// Whether to redact with a fixed width, ignoring the length of the data.
-    ///
-    /// Incompatible with `partial`.
-    pub fixed: u8,
 }
 impl RedactFlags {
     /// How many characters must a word be for it to be partially redacted?
@@ -52,14 +49,14 @@ impl RedactFlags {
     /// Maximum number of characters to expose at the beginning and end of a partial redact.
     const MAX_PARTIAL_EXPOSE: usize = 3;
 
-    fn redact_partial(&self, str: &str, redacted: &mut String) {
-        let count = str.chars().filter(|char| char.is_alphanumeric()).count();
+    pub(crate) fn redact_partial(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
+        let count = to_redact.chars().filter(|char| char.is_alphanumeric()).count();
         if count < Self::MIN_PARTIAL_CHARS {
-            for char in str.chars() {
+            for char in to_redact.chars() {
                 if char.is_alphanumeric() {
-                    redacted.push(self.redact_char);
+                    fmt.write_char(self.redact_char)?;
                 } else {
-                    redacted.push(char);
+                    fmt.write_char(char)?;
                 }
             }
         } else {
@@ -68,44 +65,47 @@ impl RedactFlags {
 
             let mut prefix_gas = redact_count;
             let mut middle_gas = count - redact_count - redact_count;
-            for char in str.chars() {
+            for char in to_redact.chars() {
                 if char.is_alphanumeric() {
                     if prefix_gas > 0 {
                         prefix_gas -= 1;
-                        redacted.push(char);
+                        fmt.write_char(char)?;
                     } else if middle_gas > 0 {
                         middle_gas -= 1;
-                        redacted.push(self.redact_char);
+                        fmt.write_char(self.redact_char)?;
                     } else {
-                        redacted.push(char);
+                        fmt.write_char(char)?;
                     }
                 } else {
-                    redacted.push(char);
+                    fmt.write_char(char)?;
                 }
             }
         }
+        Ok(())
     }
 
-    fn redact_full(&self, str: &str, redacted: &mut String) {
-        for char in str.chars() {
+    pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
+        for char in to_redact.chars() {
             if char.is_whitespace() || !char.is_alphanumeric() {
-                redacted.push(char);
+                fmt.write_char(char)?;
             } else {
-                redacted.push(self.redact_char);
+                fmt.write_char(self.redact_char)?;
             }
         }
+        Ok(())
     }
 
-    fn redact_fixed(&self, width: usize, redacted: &mut String) {
-        redacted.reserve_exact(width);
+    pub(crate) fn redact_fixed(fmt: &mut std::fmt::Formatter, width: usize, char: char) -> std::fmt::Result {
+        let mut buf = String::with_capacity(width);
         for _ in 0..width {
-            redacted.push(self.redact_char);
+            buf.push(char);
         }
+        fmt.write_str(&buf)
     }
 }
 
 pub enum RedactionTarget<'a> {
-    /// Redact the output of the type's [`std::fmt::Debug`] implementation.
+    /// Redact the output of the type's [`Debug`] implementation.
     Debug {
         this: &'a dyn Debug,
 
@@ -113,59 +113,74 @@ pub enum RedactionTarget<'a> {
         alternate: bool,
     },
 
-    /// Redact the output of the type's [`std::fmt::Display`] implementation.
+    /// Redact the output of the type's [`Display`] implementation.
     Display(&'a dyn Display),
 }
-
-pub fn redact(this: RedactionTarget, flags: RedactFlags) -> DisplayDebug {
-    let mut redacted = String::new();
-
-    let to_redactable_string = || match this {
-        RedactionTarget::Debug { this, alternate: false } => format!("{:?}", this),
-        RedactionTarget::Debug { this, alternate: true } => format!("{:#?}", this),
-        RedactionTarget::Display(this) => this.to_string(),
-    };
-
+impl RedactionTarget<'_> {
+    /// Pass through directly to the formatter.
     #[cfg(feature = "toggle")]
-    if crate::toggle::get_redaction_behavior().is_plaintext() {
-        return DisplayDebug(to_redactable_string());
+    pub(crate) fn passthrough(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            RedactionTarget::Debug { this, .. } => std::fmt::Debug::fmt(this, fmt),
+            RedactionTarget::Display(this) => std::fmt::Display::fmt(this, fmt),
+        }
     }
+}
+impl ToString for RedactionTarget<'_> {
+    fn to_string(&self) -> String {
+        match self {
+            RedactionTarget::Debug { this, alternate: false } => format!("{:?}", this),
+            RedactionTarget::Debug { this, alternate: true } => format!("{:#?}", this),
+            RedactionTarget::Display(this) => this.to_string(),
+        }
+    }
+}
 
-    (|| {
-        if flags.fixed > 0 {
-            flags.redact_fixed(flags.fixed as usize, &mut redacted);
-            return;
+pub struct RedactionFormatter<'a> {
+    pub this: RedactionTarget<'a>,
+    pub flags: RedactFlags,
+    pub specialization: Option<RedactSpecialization>,
+}
+impl std::fmt::Debug for RedactionFormatter<'_> {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[cfg(feature = "toggle")]
+        if crate::toggle::get_redaction_behavior().is_plaintext() {
+            return self.this.passthrough(fmt);
         }
 
-        let redactable_string = to_redactable_string();
+        if let RedactionLength::Fixed(n) = &self.flags.redact_length {
+            return RedactFlags::redact_fixed(fmt, n.get() as usize, self.flags.redact_char);
+        }
 
-        redacted.reserve(redactable_string.len());
+        let redactable_string = self.this.to_string();
 
-        // Specialize for Option<T>
-        if flags.is_option {
-            if redactable_string == "None" {
-                // We don't need to do any redacting
-                // https://prima.slack.com/archives/C03URH9N43U/p1661423554871499
-            } else if let Some(inner) = redactable_string
-                .strip_prefix("Some(")
-                .and_then(|inner| inner.strip_suffix(')'))
-            {
-                redacted.push_str("Some(");
-                flags.redact_partial(inner, &mut redacted);
-                redacted.push(')');
-            } else {
-                // This should never happen, but just in case...
-                flags.redact_full(&redactable_string, &mut redacted);
+        #[allow(clippy::single_match)]
+        match self.specialization {
+            Some(RedactSpecialization::Option) => {
+                if redactable_string == "None" {
+                    // We don't need to do any redacting
+                    // https://prima.slack.com/archives/C03URH9N43U/p1661423554871499
+                    return fmt.write_str("None");
+                } else if let Some(inner) = redactable_string
+                    .strip_prefix("Some(")
+                    .and_then(|inner| inner.strip_suffix(')'))
+                {
+                    fmt.write_str("Some(")?;
+                    self.flags.redact_partial(fmt, inner)?;
+                    return fmt.write_char(')');
+                } else {
+                    // This should never happen, but just in case...
+                    return self.flags.redact_full(fmt, &redactable_string);
+                }
             }
-            return;
+
+            None => {}
         }
 
-        if flags.partial {
-            flags.redact_partial(&redactable_string, &mut redacted);
+        if let RedactionLength::Partial = &self.flags.redact_length {
+            self.flags.redact_partial(fmt, &redactable_string)
         } else {
-            flags.redact_full(&redactable_string, &mut redacted);
+            self.flags.redact_full(fmt, &redactable_string)
         }
-    })();
-
-    DisplayDebug(redacted)
+    }
 }

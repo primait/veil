@@ -1,0 +1,23 @@
+error: `fixed` clashes with an existing redaction length flag
+ --> src/compile_tests/fail/redact_incompatible_flags.rs:5:23
+  |
+5 |     #[redact(partial, fixed = 3)]
+  |                       ^^^^^
+
+error: `partial` clashes with an existing redaction length flag
+  --> src/compile_tests/fail/redact_incompatible_flags.rs:11:25
+   |
+11 |     #[redact(fixed = 3, partial)]
+   |                         ^^^^^^^
+
+error: `partial` clashes with an existing redaction length flag
+  --> src/compile_tests/fail/redact_incompatible_flags.rs:17:34
+   |
+17 |     #[redact(variant, fixed = 3, partial)]
+   |                                  ^^^^^^^
+
+error: `fixed` clashes with an existing redaction length flag
+  --> src/compile_tests/fail/redact_incompatible_flags.rs:26:32
+   |
+26 |     #[redact(variant, partial, fixed = 3)]
+   |                                ^^^^^

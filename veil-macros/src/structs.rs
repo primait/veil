@@ -1,4 +1,8 @@
-use crate::{flags::FieldFlags, fmt::FormatData, UnusedDiagnostic};
+use crate::{
+    flags::{ExtractFlags, FieldFlags, FieldFlagsParse},
+    fmt::FormatData,
+    redact::UnusedDiagnostic,
+};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::spanned::Spanned;
@@ -13,7 +17,7 @@ pub(super) fn derive_redact(
     // Parse #[redact(all, variant, ...)] from the enum attributes, if present.
     let top_level_flags = match attrs.len() {
         0 => None,
-        1 => match FieldFlags::extract::<1>(&attrs, false)? {
+        1 => match FieldFlags::extract::<1>("Redact", &attrs, FieldFlagsParse { skip_allowed: false })? {
             [Some(flags)] => {
                 if flags.variant {
                     return Err(syn::Error::new(
@@ -61,9 +65,9 @@ pub(super) fn derive_redact(
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     Ok(quote! {
         impl #impl_generics ::std::fmt::Debug for #name_ident #ty_generics #where_clause {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+            fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 #[allow(unused)] // Suppresses unused warning with `#[redact(display)]`
-                let alternate = f.alternate();
+                let alternate = fmt.alternate();
 
                 #impl_debug;
 
