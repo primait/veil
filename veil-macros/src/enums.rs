@@ -168,7 +168,7 @@ pub(super) fn derive_redact(
     for (variant, flags) in e.variants.iter().zip(variant_flags.into_iter()) {
         // Variant name redacting
         let variant_name = variant.ident.to_string();
-        let variant_name = if let Some(flags) = &flags.variant_flags {
+        let variant_name = if let Some(flags @ FieldFlags { skip: false, .. }) = &flags.variant_flags {
             // The variant name must always be formatted with the Display impl.
             let flags = FieldFlags {
                 display: true,
