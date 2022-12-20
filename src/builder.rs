@@ -7,6 +7,7 @@ use std::fmt::{Debug, Display};
 /// A wrapped reference to some data that, when formatted as [`Debug`] or [`Display`] (if implemented for `T`), will be redacted.
 ///
 /// See [`Redactor::wrap`] for more information.
+#[derive(Clone, Copy)]
 pub struct RedactWrapped<'a, T> {
     data: &'a T,
     flags: &'a RedactFlags,
@@ -42,12 +43,6 @@ where
             },
             fmt,
         )
-    }
-}
-impl<T> Copy for RedactWrapped<'_, T> {}
-impl<T> Clone for RedactWrapped<'_, T> {
-    fn clone(&self) -> Self {
-        *self
     }
 }
 
