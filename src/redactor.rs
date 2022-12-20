@@ -1,3 +1,7 @@
+//! The [`Redactor`] allows for redacting arbitrary strings using a pre-defined set of flags.
+//!
+//! To build a [`Redactor`], use the [`RedactorBuilder`].
+
 use crate::{
     private::{RedactFlags, RedactionFormatter, RedactionLength, RedactionTarget},
     util::give_me_a_formatter,
