@@ -197,7 +197,7 @@ fn test_enum_display_redaction() {
 }
 
 #[test]
-fn test_derive_sensitive() {
+fn test_derive_redactable() {
     #[derive(Redactable)]
     struct SensitiveString(String);
     impl std::fmt::Display for SensitiveString {
@@ -232,7 +232,7 @@ fn test_derive_sensitive() {
 }
 
 #[test]
-fn test_derive_sensitive_modifiers() {
+fn test_derive_redactable_modifiers() {
     #[derive(Redactable)]
     #[redact(fixed = 3, with = '-')]
     struct SensitiveString(String);
