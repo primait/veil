@@ -13,5 +13,5 @@ pub trait Redactable {
     }
 
     /// Writes this value formatted as a string with all PII/sensitive data redacted into the given buffer.
-    fn redact_into<W: std::fmt::Write>(&self, buffer: &mut W) -> std::fmt::Result;
+    fn redact_into(&self, buffer: &mut dyn std::fmt::Write) -> std::fmt::Result;
 }

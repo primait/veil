@@ -56,7 +56,7 @@ fn try_derive(mut item: syn::DeriveInput) -> Result<TokenStream, syn::Error> {
                 )
             }
 
-            fn redact_into<W: ::std::fmt::Write>(&self, buffer: &mut W) -> ::std::fmt::Result {
+            fn redact_into(&self, buffer: &mut dyn ::std::fmt::Write) -> ::std::fmt::Result {
                 buffer.write_str(
                     ::veil::private::derived_redactable(
                         self,

@@ -254,6 +254,38 @@ fn test_derive_redactable_modifiers() {
 }
 
 #[test]
+fn test_derive_redactable_dyn() {
+    #[derive(Redactable)]
+    #[redact(fixed = 3, with = '-')]
+    struct SensitiveString(String);
+    impl std::fmt::Display for SensitiveString {
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(fmt)
+        }
+    }
+
+    let sensitive = SensitiveString(SENSITIVE_DATA[0].to_string());
+
+    // First test that we can redact into a dyn std::fmt::Write
+    {
+        let mut buffer = String::new();
+        {
+            let dyn_buffer: &mut dyn std::fmt::Write = &mut buffer;
+            sensitive.redact_into(dyn_buffer).unwrap();
+        }
+        assert_eq!(buffer, "---");
+    }
+
+    // Next test that the Redactable trait itself can be dyn (object-safe)
+    {
+        let dyn_sensitive: &dyn Redactable = &sensitive;
+        let mut buffer = String::new();
+        dyn_sensitive.redact_into(&mut buffer).unwrap();
+        assert_eq!(buffer, "---");
+    }
+}
+
+#[test]
 fn test_enum_variant_names() {
     #[derive(Debug)]
     enum Control {
