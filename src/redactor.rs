@@ -66,11 +66,11 @@ impl Redactor {
     /// # Example
     ///
     /// ```rust
-    /// # use veil::redactor::RedactorBuilder;
+    /// # use veil::redactor::Redactor;
     /// let email = "john.doe@prima.it".to_string();
     /// let name = "John Doe".to_string();
     ///
-    /// let redactor = RedactorBuilder::new().char('X').partial().build().unwrap();
+    /// let redactor = Redactor::builder().char('X').partial().build().unwrap();
     ///
     /// let email = redactor.redact(email);
     /// let name = redactor.redact(name);
@@ -101,11 +101,11 @@ impl Redactor {
     /// # Example
     ///
     /// ```rust
-    /// # use veil::redactor::RedactorBuilder;
+    /// # use veil::redactor::Redactor;
     /// let mut email = "john.doe@prima.it".to_string();
     /// let mut name = "John Doe".to_string();
     ///
-    /// RedactorBuilder::new()
+    /// Redactor::builder()
     ///     .char('X')
     ///     .partial()
     ///     .build()
@@ -130,11 +130,11 @@ impl Redactor {
     /// # Example
     ///
     /// ```rust
-    /// # use veil::redactor::RedactorBuilder;
+    /// # use veil::redactor::Redactor;
     /// let email = "john.doe@prima.it".to_string();
     /// let name = "John Doe".to_string();
     ///
-    /// let redactor = RedactorBuilder::new()
+    /// let redactor = Redactor::builder()
     ///     .char('X')
     ///     .partial()
     ///     .build()
