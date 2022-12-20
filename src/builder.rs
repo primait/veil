@@ -1,5 +1,5 @@
 use crate::{
-    private::{RedactFlags, RedactionFormatter, RedactionTarget},
+    private::{RedactFlags, RedactionFormatter, RedactionLength, RedactionTarget},
     util::give_me_a_formatter,
 };
 use std::fmt::{Debug, Display};
@@ -76,23 +76,17 @@ impl Redactor {
     /// );
     /// ```
     pub fn redact(&self, data: String) -> String {
-        give_me_a_formatter!(
-            move<'a> {
-                data: &'a dyn Display = &data.as_str(),
-                flags: RedactFlags = self.0
-            }
-
-            fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                std::fmt::Debug::fmt(
-                    &RedactionFormatter {
-                        this: RedactionTarget::Display(data),
-                        flags: *flags,
-                        specialization: None,
-                    },
-                    fmt,
-                )
-            }
-        )
+        give_me_a_formatter(|fmt| {
+            std::fmt::Debug::fmt(
+                &RedactionFormatter {
+                    this: RedactionTarget::Display(&data.as_str()),
+                    flags: self.0,
+                    specialization: None,
+                },
+                fmt,
+            )
+        })
+        .to_string()
     }
 
     /// Redact the given string in-place.
@@ -199,9 +193,13 @@ impl RedactorBuilder {
     #[inline(always)]
     pub const fn build(self) -> Result<Redactor, &'static str> {
         let mut flags = RedactFlags {
-            partial: self.partial,
+            redact_length: if self.partial {
+                RedactionLength::Partial
+            } else {
+                RedactionLength::Full
+            },
+
             redact_char: '*',
-            fixed: 0,
         };
 
         if let Some(char) = self.redact_char {
