@@ -1,0 +1,13 @@
+error: expected a character literal
+ --> src/compile_tests/fail/redact_invalid_flags.rs:4:36
+  |
+4 | struct InvalidChar(#[redact(with = "this isn't a char")] ());
+  |                                    ^^^^^^^^^^^^^^^^^^^
+
+error: fixed redacting width must be greater than zero
+ --> src/compile_tests/fail/redact_invalid_flags.rs:6:10
+  |
+6 | #[derive(veil::Redact)]
+  |          ^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `veil::Redact` (in Nightly builds, run with -Z macro-backtrace for more info)
