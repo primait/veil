@@ -1,9 +1,9 @@
-/// HACK! To reduce code duplication in the generated binary, this function is used to generate a
-/// struct that gives us quick access to a `&mut std::fmt::Formatter` which is used extensively
-/// throughout the `private` module.
+/// HACK! This function is used to generate a struct that gives us quick access
+/// to a `&mut std::fmt::Formatter` which is used extensively throughout the `private` module.
 ///
 /// This allows us to design & expose an API that can return `String` directly, but reuses the same
-/// code we've already written that writes to a `&mut std::fmt::Formatter` internally.
+/// code we've already written that writes to a `&mut std::fmt::Formatter` internally, thereby
+/// avoiding code duplication from generics.
 pub fn give_me_a_formatter<F>(op: F) -> impl std::fmt::Display
 where
     F: Fn(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
