@@ -66,7 +66,7 @@ impl Redactor {
     /// # Example
     ///
     /// ```rust
-    /// # use veil::RedactorBuilder;
+    /// # use veil::redactor::RedactorBuilder;
     /// let email = "john.doe@prima.it".to_string();
     /// let name = "John Doe".to_string();
     ///
@@ -101,7 +101,7 @@ impl Redactor {
     /// # Example
     ///
     /// ```rust
-    /// # use veil::RedactorBuilder;
+    /// # use veil::redactor::RedactorBuilder;
     /// let mut email = "john.doe@prima.it".to_string();
     /// let mut name = "John Doe".to_string();
     ///
@@ -130,7 +130,7 @@ impl Redactor {
     /// # Example
     ///
     /// ```rust
-    /// # use veil::RedactorBuilder;
+    /// # use veil::redactor::RedactorBuilder;
     /// let email = "john.doe@prima.it".to_string();
     /// let name = "John Doe".to_string();
     ///
