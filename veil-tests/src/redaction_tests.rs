@@ -208,7 +208,7 @@ fn test_derive_redactable() {
 
     #[derive(Redactable)]
     struct SensitiveStringField {
-        inner: String
+        inner: String,
     }
     impl std::fmt::Display for SensitiveStringField {
         fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -217,7 +217,9 @@ fn test_derive_redactable() {
     }
 
     let sensitive = SensitiveString(SENSITIVE_DATA[0].to_string());
-    let sensitive2 = SensitiveStringField { inner: SENSITIVE_DATA[0].to_string() };
+    let sensitive2 = SensitiveStringField {
+        inner: SENSITIVE_DATA[0].to_string(),
+    };
 
     assert_no_sensitive_data(sensitive.redact());
     assert_no_sensitive_data(sensitive2.redact());
