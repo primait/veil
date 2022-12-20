@@ -85,8 +85,8 @@ impl Redactor {
     }
 
     /// Redact the given string in-place.
-    ///
-    /// Convenience method for chaining.
+    //
+    /// Can be chained for convenience.
     ///
     /// # Example
     ///
@@ -100,15 +100,15 @@ impl Redactor {
     ///     .partial()
     ///     .build()
     ///     .unwrap()
-    ///     .and_redact(&mut email)
-    ///     .and_redact(&mut name);
+    ///     .redact_in_place(&mut email)
+    ///     .redact_in_place(&mut name);
     ///
     /// assert_eq!(
     ///     format!("{} <{}>", name, email),
     ///     "JoXX Xoe <johX.XXX@XXXXa.it>"
     /// );
     /// ```
-    pub fn and_redact(&self, data: &mut String) -> &Self {
+    pub fn redact_in_place(&self, data: &mut String) -> &Self {
         *data = self.redact(core::mem::take(data));
         self
     }
