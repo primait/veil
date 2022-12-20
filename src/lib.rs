@@ -239,8 +239,8 @@ mod util;
 mod redactable;
 pub use redactable::Redactable;
 
-mod builder;
-pub use builder::{RedactWrapped, Redactor, RedactorBuilder};
+mod redactor;
+pub use redactor::{RedactWrapped, Redactor, RedactorBuilder};
 
 #[cfg(feature = "toggle")]
 mod toggle;
