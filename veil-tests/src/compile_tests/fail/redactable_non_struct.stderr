@@ -1,0 +1,11 @@
+error: this trait cannot be derived for enums
+ --> src/compile_tests/fail/redactable_non_struct.rs:4:1
+  |
+4 | enum Foo {}
+  | ^^^^
+
+error: this trait cannot be derived for unions
+ --> src/compile_tests/fail/redactable_non_struct.rs:7:1
+  |
+7 | union Bar {
+  | ^^^^^

@@ -1,4 +1,4 @@
-trait AttributeFilter {
+pub(crate) trait AttributeFilter {
     fn retain_veil_attrs(&mut self);
 }
 impl AttributeFilter for Vec<syn::Attribute> {
