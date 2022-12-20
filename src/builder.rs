@@ -51,6 +51,12 @@ where
 /// To build a `Redactor`, use the [`RedactorBuilder`].
 pub struct Redactor(RedactFlags);
 impl Redactor {
+    /// Returns a builder ([`RedactorBuilder`]) for this type.
+    #[inline(always)]
+    pub const fn builder() -> RedactorBuilder {
+        RedactorBuilder::new()
+    }
+
     /// Redact the given string.
     ///
     /// # Example
