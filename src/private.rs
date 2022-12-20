@@ -187,21 +187,15 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
 }
 
 pub fn derived_redactable(this: &dyn Display, flags: RedactFlags) -> String {
-    give_me_a_formatter!(
-        move<'a> {
-            this: &'a dyn Display = this,
-            flags: RedactFlags = flags
-        }
-
-        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            std::fmt::Debug::fmt(
-                &RedactionFormatter {
-                    this: RedactionTarget::Display(this),
-                    flags: *flags,
-                    specialization: None
-                },
-                fmt
-            )
-        }
-    )
+    give_me_a_formatter(|fmt| {
+        std::fmt::Debug::fmt(
+            &RedactionFormatter {
+                this: RedactionTarget::Display(this),
+                flags,
+                specialization: None,
+            },
+            fmt,
+        )
+    })
+    .to_string()
 }

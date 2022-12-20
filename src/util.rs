@@ -1,38 +1,26 @@
-/// HACK! To reduce code duplication in the generated binary, this macro is used to generate a
+/// HACK! To reduce code duplication in the generated binary, this function is used to generate a
 /// struct that gives us quick access to a `&mut std::fmt::Formatter` which is used extensively
 /// throughout the `private` module.
 ///
 /// This allows us to design & expose an API that can return `String` directly, but reuses the same
 /// code we've already written that writes to a `&mut std::fmt::Formatter` internally.
-///
-/// The user can move some data into context, additionally with an attached lifetime to allow for
-/// passing references. The user can then use the `fmt` argument to format the data with existing
-/// redaction functions & code.
-macro_rules! give_me_a_formatter {
-    (
-        $(move$(<$lifetime:lifetime>)? {
-            $($field:ident: $ty:ty = $move:expr),+
-        })?
+pub fn give_me_a_formatter<F>(op: F) -> impl std::fmt::Display
+where
+    F: Fn(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
+{
+    struct GiveMeAFormatter<F>(F)
+    where
+        F: Fn(&mut std::fmt::Formatter<'_>) -> std::fmt::Result;
 
-        fn fmt(&self, $fmt:ident: &mut std::fmt::Formatter<'_>) -> std::fmt::Result $code:block
-    ) => {{
-        struct GiveMeAFormatter $($(<$lifetime>)?)? {
-            _phantom: std::marker::PhantomData< $($(& $lifetime)?)? () >,
-            $($($field: $ty),+)?
+    impl<F> std::fmt::Display for GiveMeAFormatter<F>
+    where
+        F: Fn(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
+    {
+        #[inline(always)]
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            (self.0)(f)
         }
-        impl $($(<$lifetime>)?)? std::fmt::Display for GiveMeAFormatter $($(<$lifetime>)?)? {
-            #[inline]
-            fn fmt(&self, $fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $(let Self { $($field,)+ .. } = self;)?
-                $code
-            }
-        }
-        #[allow(clippy::redundant_field_names)] {
-            GiveMeAFormatter {
-                _phantom: std::marker::PhantomData,
-                $($($field: $move),+)?
-            }.to_string()
-        }
-    }};
+    }
+
+    GiveMeAFormatter(op)
 }
-pub(crate) use give_me_a_formatter;
