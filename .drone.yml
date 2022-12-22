@@ -45,7 +45,11 @@ steps:
 - name: cargo-clippy-ci
   image: rust:1.64
   commands:
-  - rustup component add clippy && cargo clippy --workspace -- -D warnings && cargo clippy --workspace --all-features -- -D warnings && cargo clippy --workspace --release -- -D warnings && cargo clippy --workspace --release --all-features -- -D warnings
+  - rustup component add clippy 
+  - cargo clippy --workspace -- -D warnings
+  - cargo clippy --workspace --all-features -- -D warnings 
+  - cargo clippy --workspace --release -- -D warnings 
+  - cargo clippy --workspace --release --all-features -- -D warnings
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
@@ -137,6 +141,6 @@ depends_on:
 
 ---
 kind: signature
-hmac: 9534038b1f938070a8ead0a26a15a6cda205b46d83256190f4e8f2c75e97a27d
+hmac: 66badf18a9b2157be8df165e445ffeb0d793c1a9031ad1aafb32f30da1a0edfd
 
 ...
