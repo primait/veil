@@ -1,4 +1,4 @@
-use veil::{Redactor, RedactorBuilder};
+use veil::redactor::{Redactor, RedactorBuilder};
 
 fn main() {
     // Build a new Redactor.
@@ -16,7 +16,7 @@ fn main() {
     // and we can also chain multiple redactions together:
     let mut hello = "Hello, world!".to_string();
     let mut goodbye = "Goodbye, world!".to_string();
-    redactor.and_redact(&mut hello).and_redact(&mut goodbye);
+    redactor.redact_in_place(&mut hello).redact_in_place(&mut goodbye);
     assert_eq!(hello, "HelXX, XXrld!");
     assert_eq!(goodbye, "GooXXXX, XXrld!");
 
