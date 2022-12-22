@@ -14,7 +14,7 @@ Add to your Cargo.toml:
 
 ```toml
 [dependencies]
-veil = "0.1.4"
+veil = "0.1.5"
 ```
 
 Usage documentation can be found [here](https://docs.rs/veil).
