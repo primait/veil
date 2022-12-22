@@ -228,7 +228,7 @@
 //!
 //! * Use the [`Redactable`](derive.Redactable.html) derive macro to generate a [`Redactable`] trait implementation for your type.
 //! * Implement the [`Redactable`] trait manually.
-//! * Use the provided [`RedactorBuilder`] to build a [`Redactor`] instance.
+//! * Use the provided [`RedactorBuilder`](redactor::RedactorBuilder) to build a [`Redactor`](redactor::Redactor) instance.
 //!
 //! # Environmental Awareness
 //!
