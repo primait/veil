@@ -10,67 +10,61 @@ clone:
   disable: true
 
 steps:
-  - name: git-clone
-    image: public.ecr.aws/prima/drone-git:1.3-3
-    environment:
-      PLUGIN_DEPTH: 5
+- name: git-clone
+  image: public.ecr.aws/prima/drone-git:1.3-3
+  environment:
+    PLUGIN_DEPTH: 5
 
-  - name: cargo-deps
-    image: rust:1.64
-    commands:
-      - cargo fetch
-    environment:
-      CARGO_HOME: /drone/src/.cargo
-    depends_on:
-      - git-clone
+- name: cargo-deps
+  image: rust:1.64
+  commands:
+  - cargo fetch
+  environment:
+    CARGO_HOME: /drone/src/.cargo
+  depends_on:
+  - git-clone
 
-  - name: cargo-format
-    image: rust:1.64
-    commands:
-      - rustup component add rustfmt &&
-        cargo fmt --all -- --check
-    environment:
-      CARGO_HOME: /drone/src/.cargo
-    depends_on:
-      - cargo-deps
+- name: cargo-format
+  image: rust:1.64
+  commands:
+  - rustup component add rustfmt && cargo fmt --all -- --check
+  environment:
+    CARGO_HOME: /drone/src/.cargo
+  depends_on:
+  - cargo-deps
 
-  - name: cargo-doc-ci
-    image: rust:1.64
-    commands:
-      - cargo doc --document-private-items --workspace --all-features --no-deps -- -Dwarnings
-    environment:
-      RUSTDOCFLAGS: -Dwarnings
-    depends_on:
-      - cargo-format
+- name: cargo-doc-ci
+  image: rust:1.64
+  commands:
+  - cargo doc --document-private-items --workspace --all-features --no-deps -- -Dwarnings
+  environment:
+    RUSTDOCFLAGS: -Dwarnings
+  depends_on:
+  - cargo-format
 
-  - name: cargo-clippy-ci
-    image: rust:1.64
-    commands:
-      - rustup component add clippy &&
-        cargo clippy --workspace -- -D warnings &&
-        cargo clippy --workspace --all-features -- -D warnings &&
-        cargo clippy --workspace --release -- -D warnings &&
-        cargo clippy --workspace --release --all-features -- -D warnings
-    environment:
-      BUILD_ENV: dev
-      CARGO_HOME: /drone/src/.cargo
-    depends_on:
-      - cargo-doc-ci
+- name: cargo-clippy-ci
+  image: rust:1.64
+  commands:
+  - rustup component add clippy && cargo clippy --workspace -- -D warnings && cargo clippy --workspace --all-features -- -D warnings && cargo clippy --workspace --release -- -D warnings && cargo clippy --workspace --release --all-features -- -D warnings
+  environment:
+    BUILD_ENV: dev
+    CARGO_HOME: /drone/src/.cargo
+  depends_on:
+  - cargo-doc-ci
 
-  - name: cargo-test
-    image: rust:1.64
-    commands:
-      - cargo test --all && cargo test --all --features toggle
-    environment:
-      BUILD_ENV: dev
-      CARGO_HOME: /drone/src/.cargo
-      CARGO_HTTP_CAINFO: ""
-    depends_on:
-      - cargo-clippy-ci
+- name: cargo-test
+  image: rust:1.64
+  commands:
+  - cargo test --all && cargo test --all --features toggle
+  environment:
+    BUILD_ENV: dev
+    CARGO_HOME: /drone/src/.cargo
+  depends_on:
+  - cargo-clippy-ci
 
 trigger:
   event:
-    - push
+  - push
 
 ---
 kind: pipeline
@@ -84,26 +78,26 @@ clone:
   disable: true
 
 steps:
-  - name: git-clone
-    image: public.ecr.aws/prima/drone-git:1.3-3
-    environment:
-      PLUGIN_DEPTH: 5
+- name: git-clone
+  image: public.ecr.aws/prima/drone-git:1.3-3
+  environment:
+    PLUGIN_DEPTH: 5
 
-  - name: build-production
-    image: rust:1.64
-    commands:
-      - ./deploy/build production
-    environment:
-      CARGO_AUTH_KEY:
-        from_secret: cargo_auth_key
-    depends_on:
-      - git-clone
+- name: build-production
+  image: rust:1.64
+  commands:
+  - ./deploy/build production
+  environment:
+    CARGO_AUTH_KEY:
+      from_secret: cargo_auth_key
+  depends_on:
+  - git-clone
 
 trigger:
   event:
-    - tag
+  - tag
   ref:
-    - refs/tags/*.*.*
+  - refs/tags/*.*.*
 
 ---
 kind: pipeline
@@ -117,29 +111,32 @@ clone:
   disable: true
 
 steps:
-  - name: email-failure
-    image: public.ecr.aws/prima/drone-email
-    settings:
-      from: drone@prima.it
-      host: email-smtp.eu-west-1.amazonaws.com
-    environment:
-      PLUGIN_PASSWORD:
-        from_secret: email_password
-      PLUGIN_USERNAME:
-        from_secret: email_username
+- name: email-failure
+  image: public.ecr.aws/prima/drone-email
+  settings:
+    from: drone@prima.it
+    host: email-smtp.eu-west-1.amazonaws.com
+  environment:
+    PLUGIN_PASSWORD:
+      from_secret: email_password
+    PLUGIN_USERNAME:
+      from_secret: email_username
 
 trigger:
   status:
-    - failure
+  - failure
   target:
     exclude:
-      - qa-stack
-      - qa-it
-      - qa
+    - qa-stack
+    - qa-it
+    - qa
 
 depends_on:
-  - default
-  - build-production
+- default
+- build-production
+
 ---
 kind: signature
-hmac: 28171a0fb4c198384e0176ef1a6b6f120771b30b4146113488c7ff81b2e7c006
+hmac: 2f24126c7c86442d7be84bd65a0d0a211926511e01af49694b89f0ee72e93756
+
+...
