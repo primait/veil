@@ -13,7 +13,7 @@ fn main() {
     assert_eq!(redactor.redact("Hello, world!".to_string()), "HelXX, XXrld!");
 
     // Or, we can redact a `String` in-place, which is slightly more efficient,
-    // and we can also chain multiple redactions together:
+    // and allows us to chain multiple redactions together:
     let mut hello = "Hello, world!".to_string();
     let mut goodbye = "Goodbye, world!".to_string();
     redactor.redact_in_place(&mut hello).redact_in_place(&mut goodbye);
