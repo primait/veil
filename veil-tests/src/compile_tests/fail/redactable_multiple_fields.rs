@@ -3,7 +3,7 @@ fn main() {}
 #[derive(veil::Redactable)]
 struct Foo {
     bar: String,
-    baz: String
+    baz: String,
 }
 
 #[derive(veil::Redactable)]

@@ -27,26 +27,34 @@ steps:
 - name: cargo-format
   image: rust:1.64
   commands:
-  - rustup component add rustfmt &&
-    cargo fmt --all -- --check
+  - rustup component add rustfmt && cargo fmt --all -- --check
   environment:
     CARGO_HOME: /drone/src/.cargo
   depends_on:
   - cargo-deps
 
+- name: cargo-doc-ci
+  image: rust:1.64
+  commands:
+  - cargo doc --document-private-items --workspace --all-features --no-deps
+  environment:
+    RUSTDOCFLAGS: -Dwarnings
+  depends_on:
+  - cargo-format
+
 - name: cargo-clippy-ci
   image: rust:1.64
   commands:
-  - rustup component add clippy &&
-    cargo clippy -- -D warnings &&
-    cargo clippy --features toggle -- -D warnings &&
-    cargo clippy --release -- -D warnings &&
-    cargo clippy --release --features toggle -- -D warnings
+  - rustup component add clippy 
+  - cargo clippy --workspace -- -D warnings
+  - cargo clippy --workspace --all-features -- -D warnings 
+  - cargo clippy --workspace --release -- -D warnings 
+  - cargo clippy --workspace --release --all-features -- -D warnings
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
   depends_on:
-  - cargo-format
+  - cargo-doc-ci
 
 - name: cargo-test
   image: rust:1.64
@@ -55,7 +63,6 @@ steps:
   environment:
     BUILD_ENV: dev
     CARGO_HOME: /drone/src/.cargo
-    CARGO_HTTP_CAINFO: ""
   depends_on:
   - cargo-clippy-ci
 
@@ -131,8 +138,9 @@ trigger:
 depends_on:
 - default
 - build-production
+
 ---
 kind: signature
-hmac: 28171a0fb4c198384e0176ef1a6b6f120771b30b4146113488c7ff81b2e7c006
+hmac: 66badf18a9b2157be8df165e445ffeb0d793c1a9031ad1aafb32f30da1a0edfd
 
 ...

@@ -217,7 +217,7 @@ pub struct FieldFlags {
     /// Fields are not redacted by default unless their parent is marked as `#[redact(all)]`, and this flag turns off that redaction for this specific field.
     pub skip: bool,
 
-    /// Whether to use the type's [`Display`] implementation instead of [`Debug`].
+    /// Whether to use the type's [`Display`](std::fmt::Display) implementation instead of [`Debug`].
     pub display: bool,
 
     /// Flags that modify the redaction behavior.

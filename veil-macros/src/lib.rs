@@ -1,7 +1,6 @@
 //! Macros for `veil`
 
-#![deny(missing_docs)]
-#![deny(rustdoc::broken_intra_doc_links)]
+#![warn(missing_docs)]
 
 #[macro_use]
 extern crate quote;

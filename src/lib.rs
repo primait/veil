@@ -1,7 +1,7 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-//! Implements [`std::fmt::Debug`] for a struct or enum variant, with certain fields redacted.
+//! Implements [`Debug`] for a struct or enum variant, with certain fields redacted.
 //!
 //! The purpose of this macro is to allow for easy, configurable and efficient redaction of sensitive data in structs and enum variants.
 //! This can be used to hide sensitive data in logs or anywhere where personal data should not be exposed or stored.
@@ -12,7 +12,7 @@
 //!
 //! Using the `#[redact]` attribute, you can control which fields are redacted and how.
 //!
-//! **Fields without this attribute will NOT be redacted and will be shown using their default [`std::fmt::Debug`] implementation.**
+//! **Fields without this attribute will NOT be redacted and will be shown using their default [`Debug`] implementation.**
 //!
 //! Modifiers can be applied to control how the field is redacted:
 //!
@@ -21,7 +21,7 @@
 //! | `#[redact(partial)]`           |   | If the string is long enough, a small part of the<br>beginning and end will be exposed. If the string is too short to securely expose a portion of it, it will be redacted entirely. |   | Disabled. The entire string will be redacted. |
 //! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                               |   | `'*'`                                         |
 //! | `#[redact(fixed = <integer>)]` |   | If this modifier is present, the length and contents of<br>the string are completely ignored and the string will always<br>be redacted as a fixed number of redaction characters.    |   | Disabled.                                     |
-//! | `#[redact(display)]`           |   | Overrides the redaction behavior to use the type's [`std::fmt::Display`] implementation instead of [`std::fmt::Debug`].                                                              |   | Disabled.                                     |
+//! | `#[redact(display)]`           |   | Overrides the redaction behavior to use the type's [`Display`](std::fmt::Display) implementation instead of [`Debug`].                                                               |   | Disabled.                                     |
 //!
 //! # Redacting All Fields in a Struct or Enum Variant
 //!
@@ -210,15 +210,25 @@
 //!
 //! # Limitations
 //!
-//! Currently, this macro only supports [`std::fmt::Debug`] formatting with no modifiers (`{:?}`) or the "alternate" modifier (`{:#?}`).
-//! Modifiers like padding, alignment, etc. are not supported as the Rust standard library does not expose any of this behaviour for us.
+//! Currently, this macro only supports [`Debug`] formatting with no modifiers (`{:?}`) or the "alternate" modifier (`{:#?}`).
+//! Modifiers like padding, alignment, etc. are not supported as the Rust standard library does not expose any of this behavior for us.
 //!
-//! ## A note on [`std::fmt::Display`]
+//! ## A note on [`Display`](std::fmt::Display)
 //!
-//! This derive macro does **NOT** implement [`std::fmt::Display`]. If you want to implement it, you can do so manually.
+//! This derive macro does **NOT** implement [`Display`](std::fmt::Display). If you want to implement it, you can do so manually.
 //!
-//! [`std::fmt::Display`] should NOT be redacted. It is meant to be human-readable, and also has a snowball effect on [`ToString`]
-//! as [`std::fmt::Display`] automatically implements it, leading to confusing and unexpected behaviour.
+//! [`Display`](std::fmt::Display) should NOT be redacted. It is meant to be human-readable, and also has a snowball effect on [`ToString`]
+//! as [`Display`](std::fmt::Display) automatically implements it, leading to confusing and unexpected behavior.
+//!
+//! If you want to use a type's [`Display`](std::fmt::Display) implementation during redaction, you can use the `#[redact(display)]` flag described in the [Controlling Redaction](#controlling-redaction) section.
+//!
+//! # Manually Redacting Data
+//!
+//! If you want to manually redact data, you have a few options:
+//!
+//! * Use the [`Redactable`](derive.Redactable.html) derive macro to generate a [`Redactable`] trait implementation for your type.
+//! * Implement the [`Redactable`] trait manually.
+//! * Use the provided [`RedactorBuilder`](redactor::RedactorBuilder) to build a [`Redactor`](redactor::Redactor) instance.
 //!
 //! # Environmental Awareness
 //!
@@ -230,7 +240,7 @@
 //!
 //! - Calling the [`veil::disable`](disable) function. See this [example](https://github.com/primait/veil/blob/master/examples/disable_redaction.rs).
 //!
-//! These are only checked ONCE for security purposes.
+//! These are only checked ONCE for security reasons.
 
 pub use veil_macros::{Redact, Redactable};
 
