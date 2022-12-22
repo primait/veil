@@ -3,7 +3,7 @@
 use veil::Redact;
 
 #[derive(Redact)]
-#[redact(all, variant)] // Redact all the variant names!
+#[redact(all, variant)] // Redact all the variant names! We can still skip individual variants later on by marking them as `#[redact(variant, skip)]`
 enum CreditCardIssuer {
     Visa,
     Mastercard,
