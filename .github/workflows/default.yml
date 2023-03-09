@@ -4,8 +4,8 @@ jobs:
   my-job:
     runs-on:
       - self-hosted
-        #      - it
-        #      - linux
+      - it
+      - linux
     steps:
       - name: my-step
         run: echo "Hello World!"
