@@ -4,8 +4,7 @@ jobs:
   my-job:
     runs-on:
       - self-hosted
-      - it
-      - linux
+      - k8s
     steps:
       - name: my-step
         run: echo "Hello World!"
