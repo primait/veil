@@ -2,7 +2,7 @@ name: hello-world
 on: push
 jobs:
   my-job:
-    runs-on: [self-hosted, k8s-small]
+    runs-on: [self-hosted, k8s]
     steps:
       - name: my-step
         run: echo "Hello World!"
