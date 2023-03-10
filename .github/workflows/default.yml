@@ -4,7 +4,6 @@ name: build
 
 jobs:
   rust:
-    uses: primait/shared-github-actions/.github/workflows/rust.yaml@rust-v0.0.3
     uses: primait/shared-github-actions/.github/workflows/node.yaml@node-v0.0.1
     #with:
       #  runs-on: ubuntu-latest 
