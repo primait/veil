@@ -1,6 +1,7 @@
 on: [push]
 
 name: build
+permissions: read-all
 
 jobs:
   rust:
