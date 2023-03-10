@@ -5,4 +5,5 @@ name: build
 jobs:
   rust:
     uses: primait/shared-github-actions/.github/workflows/rust.yaml@rust-v0.0.3
-      runs-on: k8s-large
+    with:
+      runs-on: ubuntu-latest 
