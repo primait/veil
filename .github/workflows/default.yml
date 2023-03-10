@@ -1,8 +1,8 @@
-name: hello-world
-on: push
+on: [push]
+
+name: build
+
 jobs:
-  my-job:
-    runs-on: [self-hosted, k8s]
-    steps:
-      - name: my-step
-        run: echo "Hello World!"
+  rust:
+    uses: primait/shared-github-actions/.github/workflows/rust.yaml@rust-v0.0.3
+      runs-on: k8s-large
