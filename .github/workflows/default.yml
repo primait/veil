@@ -15,8 +15,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: cargo fmt
         run: cargo fmt --all -- --check
-      - name: Clippy
-        run: cargo clippy -- -D warnings
   clippy:
     runs-on: ubuntu-latest
     steps:
