@@ -15,28 +15,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: cargo fmt
         run: cargo fmt --all -- --check
-  clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       - name: Clippy
         run: cargo clippy --workspace --all-features -- -D warnings 
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: Swatinem/rust-cache@v2
-    - name: Build docs
-      run:  cargo doc --document-private-items --workspace --all-features --no-deps
+      - name: Build docs
+        run:  cargo doc --document-private-items --workspace --all-features --no-deps
+      - name: Run tests for no features
+        run: cargo test --all 
+      - name: Run tests with toggle feature
+        run: cargo test --all --features toggle
     env:
       RUSTDOCFLAGS: -Dwarnings
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: Swatinem/rust-cache@v2
-    - name: Run tests for no features
-      run: cargo test --all 
-    - name: Run tests with toggle feature
-      run: cargo test --all --features toggle
