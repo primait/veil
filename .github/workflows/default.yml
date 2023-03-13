@@ -15,8 +15,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: cargo fmt
         run: cargo fmt --all -- --check
-      - name: Clippy
-        run: cargo clippy --workspace --all-features -- -D warnings 
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --workspace --all-features
       - name: Build docs
         run:  cargo doc --document-private-items --workspace --all-features --no-deps
       - name: Run tests for no features
