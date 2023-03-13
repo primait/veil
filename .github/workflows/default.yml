@@ -25,6 +25,7 @@ jobs:
       - name: Clippy
         run: cargo clippy -- -D warnings
   docs:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - uses: Swatinem/rust-cache@v2
