@@ -8,6 +8,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --workspace --all-features
   format:
     runs-on: ubuntu-latest
     steps:
@@ -15,15 +22,31 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: cargo fmt
         run: cargo fmt --all -- --check
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-features
-      - name: Build docs
-        run:  cargo doc --document-private-items --workspace --all-features --no-deps
-      - name: Run tests for no features
-        run: cargo test --all 
-      - name: Run tests with toggle feature
-        run: cargo test --all --features toggle
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: Clippy
+        run: cargo clippy --workspace --all-features -- -D warnings 
+    needs: build
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+    - name: Build docs
+      run:  cargo doc --document-private-items --workspace --all-features --no-deps
+    needs: build
     env:
       RUSTDOCFLAGS: -Dwarnings
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+    - name: Run tests for no features
+      run: cargo test --all 
+    - name: Run tests with toggle feature
+      run: cargo test --all --features toggle
+    needs: build
