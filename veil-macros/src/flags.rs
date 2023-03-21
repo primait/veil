@@ -153,9 +153,12 @@ impl ExtractFlags for RedactFlags {
             }
 
             // #[redact(with = 'X')]
-            syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.lit {
-                syn::Lit::Char(with) => self.redact_char = with.value(),
-                _ => return TryParseMeta::Err(syn::Error::new_spanned(kv.lit, "expected a character literal")),
+            syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.value {
+                syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Char(with),
+                    ..
+                }) => self.redact_char = with.value(),
+                _ => return TryParseMeta::Err(syn::Error::new_spanned(kv.value, "expected a character literal")),
             },
 
             // #[redact(fixed = u8)]
@@ -166,7 +169,11 @@ impl ExtractFlags for RedactFlags {
                         "`fixed` clashes with an existing redaction length flag",
                     ));
                 }
-                if let syn::Lit::Int(int) = kv.lit {
+                if let syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Int(int),
+                    ..
+                }) = kv.value
+                {
                     self.redact_length = RedactionLength::Fixed(
                         match int.base10_parse::<u8>().and_then(|int| {
                             NonZeroU8::new(int).ok_or_else(|| {
@@ -178,7 +185,7 @@ impl ExtractFlags for RedactFlags {
                         },
                     )
                 } else {
-                    return TryParseMeta::Err(syn::Error::new_spanned(kv.lit, "expected a character literal"));
+                    return TryParseMeta::Err(syn::Error::new_spanned(kv.value, "expected a character literal"));
                 }
             }
 
