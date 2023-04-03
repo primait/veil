@@ -1,0 +1,26 @@
+name: Continous Deployment
+
+on: [push, pull_request]
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install
+        run: |
+          rustup toolchain install stable --profile minimal
+          cargo install cargo-release --version "0.23.*"
+      - name: login 
+        run: cargo login "$CARGO_AUTH_KEY"
+        env:
+          CARGO_AUTH_KEY: ${{ secrets.CARGO_AUTH_KEY }}
+      - name: publish
+        run: cargo release publish --no-confirm --allow-branch "*" --workspace --all-features # --execute
