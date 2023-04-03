@@ -5,19 +5,19 @@ use std::{
 };
 
 pub enum RedactSpecialization {
-    /// Whether the type we're redacting is an Option<T> or not. Poor man's specialization! This is detected
+    /// Whether the type we're redacting is an [`Option<T>`] or not. Poor man's specialization! This is detected
     /// by the proc macro reading the path to the type, so it's not perfect.
     ///
     /// This could be improved & rid of in a number of different ways in the future:
     ///
     /// * Once specialization is stabilized, we can use a trait to override redacting behavior for some types,
-    /// one of which would be Option<T>.
+    /// one of which would be [`Option<T>`].
     ///
     /// * Once std::ptr::metadata and friends are stabilized, we could use it to unsafely cast the dyn Debug pointer
-    /// to a concrete Option<T> and redact it directly. Probably not the best idea.
+    /// to a concrete [`Option<T>`] and redact it directly. Probably not the best idea.
     ///
     /// * Once trait upcasting is stabilized, we could use it to upcast the dyn Debug pointer to a dyn Any and then
-    /// downcast it to a concrete Option<T> and redact it directly.
+    /// downcast it to a concrete [`Option<T>`] and redact it directly.
     Option,
 }
 
