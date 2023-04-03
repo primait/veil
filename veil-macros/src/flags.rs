@@ -1,41 +1,30 @@
 use std::num::NonZeroU8;
-use syn::spanned::Spanned;
+use syn::{spanned::Spanned, LitInt};
 
 pub struct FieldFlagsParse {
     pub skip_allowed: bool,
 }
 
-pub enum TryParseMeta {
+pub enum ParseMeta {
     Consumed,
-    Unrecognised(syn::Meta),
-    Err(syn::Error),
+    Unrecognised,
 }
+
+type TryParseMeta = Result<ParseMeta, syn::Error>;
 
 pub trait ExtractFlags: Sized + Copy + Default {
     type Options;
 
-    fn try_parse_meta(&mut self, meta: syn::Meta) -> TryParseMeta;
+    fn try_parse_meta(&mut self, meta: &mut syn::meta::ParseNestedMeta) -> TryParseMeta;
 
     fn parse_meta(
         &mut self,
         derive_name: &'static str,
-        attr: &syn::Attribute,
-        meta: syn::Meta,
+        meta: &mut syn::meta::ParseNestedMeta,
     ) -> Result<(), syn::Error> {
-        match self.try_parse_meta(meta) {
-            TryParseMeta::Consumed => Ok(()),
-            TryParseMeta::Err(err) => Err(err),
-            TryParseMeta::Unrecognised(meta) => match meta {
-                // Anything we don't expect
-                syn::Meta::List(_) => Err(syn::Error::new_spanned(
-                    attr,
-                    format!("unexpected list for `{}` attribute", derive_name),
-                )),
-                _ => Err(syn::Error::new_spanned(
-                    attr,
-                    format!("unknown modifier for `{}` attribute", derive_name),
-                )),
-            },
+        match self.try_parse_meta(meta)? {
+            ParseMeta::Consumed => Ok(()),
+            ParseMeta::Unrecognised => Err(meta.error(format!("unknown attribute for `{derive_name}` attribute"))),
         }
     }
 
@@ -68,27 +57,16 @@ pub trait ExtractFlags: Sized + Copy + Default {
     fn parse(derive_name: &'static str, attr: &syn::Attribute) -> Result<Option<Self>, syn::Error> {
         let mut flags = Self::default();
 
-        // The modifiers could be a single value or a list, so we need to handle both cases.
-        let modifiers = match attr.parse_meta()? {
+        match attr.meta {
             // List
-            syn::Meta::List(syn::MetaList { nested, .. }) => nested.into_iter().filter_map(|meta| match meta {
-                syn::NestedMeta::Meta(meta) => Some(meta),
-                _ => None,
-            }),
+            syn::Meta::List(_) => {
+                attr.parse_nested_meta(|mut meta| flags.parse_meta(derive_name, &mut meta))?;
 
-            // Single value
-            meta => match meta {
-                syn::Meta::Path(_) => return Ok(Some(flags)),
-                _ => return Ok(None),
-            },
-        };
-
-        // Now we can finally process each modifier.
-        for meta in modifiers {
-            flags.parse_meta(derive_name, attr, meta)?;
+                Ok(Some(flags))
+            }
+            syn::Meta::Path(_) => Ok(Some(flags)),
+            _ => todo!(),
         }
-
-        Ok(Some(flags))
     }
 
     fn validate(&self, _attr: &syn::Attribute, _options: &Self::Options) -> Result<(), syn::Error> {
@@ -139,59 +117,36 @@ impl Default for RedactFlags {
 impl ExtractFlags for RedactFlags {
     type Options = ();
 
-    fn try_parse_meta(&mut self, meta: syn::Meta) -> TryParseMeta {
-        match meta {
-            // #[redact(partial)]
-            syn::Meta::Path(path) if path.is_ident("partial") => {
-                if self.redact_length != RedactionLength::Full {
-                    return TryParseMeta::Err(syn::Error::new_spanned(
-                        path,
-                        "`partial` clashes with an existing redaction length flag",
-                    ));
-                }
-                self.redact_length = RedactionLength::Partial;
+    fn try_parse_meta(&mut self, meta: &mut syn::meta::ParseNestedMeta) -> TryParseMeta {
+        // #[redact(partial)]
+        if meta.path.is_ident("partial") {
+            if self.redact_length != RedactionLength::Full {
+                return TryParseMeta::Err(meta.error("`partial` clashes with an existing redaction length flag"));
             }
-
-            // #[redact(with = 'X')]
-            syn::Meta::NameValue(kv) if kv.path.is_ident("with") => match kv.value {
-                syn::Expr::Lit(syn::ExprLit {
-                    lit: syn::Lit::Char(with),
-                    ..
-                }) => self.redact_char = with.value(),
-                _ => return TryParseMeta::Err(syn::Error::new_spanned(kv.value, "expected a character literal")),
-            },
-
+            self.redact_length = RedactionLength::Partial;
+        // #[redact(with = 'X')]
+        } else if meta.path.is_ident("with") {
+            let ch: syn::LitChar = meta.value()?.parse()?;
+            self.redact_char = ch.value();
             // #[redact(fixed = u8)]
-            syn::Meta::NameValue(kv) if kv.path.is_ident("fixed") => {
-                if self.redact_length != RedactionLength::Full {
-                    return TryParseMeta::Err(syn::Error::new_spanned(
-                        kv.path,
-                        "`fixed` clashes with an existing redaction length flag",
-                    ));
-                }
-                if let syn::Expr::Lit(syn::ExprLit {
-                    lit: syn::Lit::Int(int),
-                    ..
-                }) = kv.value
-                {
-                    self.redact_length = RedactionLength::Fixed(
-                        match int.base10_parse::<u8>().and_then(|int| {
-                            NonZeroU8::new(int).ok_or_else(|| {
-                                syn::Error::new_spanned(int, "fixed redacting width must be greater than zero")
-                            })
-                        }) {
-                            Ok(fixed) => fixed,
-                            Err(err) => return TryParseMeta::Err(err),
-                        },
-                    )
-                } else {
-                    return TryParseMeta::Err(syn::Error::new_spanned(kv.value, "expected a character literal"));
-                }
+        } else if meta.path.is_ident("fixed") {
+            if self.redact_length != RedactionLength::Full {
+                return TryParseMeta::Err(meta.error("`fixed` clashes with an existing redaction length flag"));
             }
-
-            _ => return TryParseMeta::Unrecognised(meta),
+            let int: LitInt = meta.value()?.parse()?;
+            self.redact_length = RedactionLength::Fixed(
+                match int.base10_parse::<u8>().and_then(|int| {
+                    NonZeroU8::new(int)
+                        .ok_or_else(|| syn::Error::new_spanned(int, "fixed redacting width must be greater than zero"))
+                }) {
+                    Ok(fixed) => fixed,
+                    Err(err) => return TryParseMeta::Err(err),
+                },
+            )
+        } else {
+            return Ok(ParseMeta::Unrecognised);
         }
-        TryParseMeta::Consumed
+        Ok(ParseMeta::Consumed)
     }
 }
 impl quote::ToTokens for RedactFlags {
@@ -233,43 +188,32 @@ pub struct FieldFlags {
 impl ExtractFlags for FieldFlags {
     type Options = FieldFlagsParse;
 
-    fn try_parse_meta(&mut self, meta: syn::Meta) -> TryParseMeta {
+    fn try_parse_meta(&mut self, meta: &mut syn::meta::ParseNestedMeta) -> TryParseMeta {
         // First try to parse the redaction flags.
-        let meta = match self.redact.try_parse_meta(meta) {
+        if let result @ (Ok(ParseMeta::Consumed) | Err(_)) = self.redact.try_parse_meta(meta) {
             // This was a redaction flag, so we don't need to do anything else.
             // OR
             // This was an error, so we need to propagate it.
-            result @ (TryParseMeta::Consumed | TryParseMeta::Err(_)) => return result,
+            return result;
+        }
+        // This was not a redaction flag, so we need to continue processing.
 
-            // This was not a redaction flag, so we need to continue processing.
-            TryParseMeta::Unrecognised(meta) => meta,
-        };
-
-        match meta {
-            // #[redact(all)]
-            syn::Meta::Path(path) if path.is_ident("all") => {
-                self.all = true;
-            }
-
-            // #[redact(skip)]
-            syn::Meta::Path(path) if path.is_ident("skip") => {
-                self.skip = true;
-            }
-
-            // #[redact(variant)]
-            syn::Meta::Path(path) if path.is_ident("variant") => {
-                self.variant = true;
-            }
-
-            // #[redact(display)]
-            syn::Meta::Path(path) if path.is_ident("display") => {
-                self.display = true;
-            }
-
-            _ => return TryParseMeta::Unrecognised(meta),
+        // #[redact(all)]
+        if meta.path.is_ident("all") {
+            self.all = true;
+        }
+        // #[redact(skip)]
+        else if meta.path.is_ident("skip") {
+            self.skip = true;
+        } else if meta.path.is_ident("variant") {
+            self.variant = true;
+        } else if meta.path.is_ident("display") {
+            self.display = true;
+        } else {
+            return Ok(ParseMeta::Unrecognised);
         }
 
-        TryParseMeta::Consumed
+        Ok(ParseMeta::Consumed)
     }
 
     fn validate(&self, attr: &syn::Attribute, options: &Self::Options) -> Result<(), syn::Error> {
