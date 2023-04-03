@@ -1,5 +1,5 @@
 use std::num::NonZeroU8;
-use syn::{spanned::Spanned, LitInt};
+use syn::{spanned::Spanned, LitInt, LitChar};
 
 pub struct FieldFlagsParse {
     pub skip_allowed: bool,
@@ -126,7 +126,7 @@ impl ExtractFlags for RedactFlags {
             self.redact_length = RedactionLength::Partial;
         // #[redact(with = 'X')]
         } else if meta.path.is_ident("with") {
-            let ch: syn::LitChar = meta.value()?.parse()?;
+            let ch: LitChar = meta.value()?.parse()?;
             self.redact_char = ch.value();
             // #[redact(fixed = u8)]
         } else if meta.path.is_ident("fixed") {
