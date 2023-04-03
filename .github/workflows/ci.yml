@@ -13,31 +13,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build
         run: cargo build --workspace --all-features
-  format:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       - name: cargo fmt
         run: cargo fmt --all -- --check
-  clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       - name: Clippy
         run: cargo clippy --workspace --all-features -- -D warnings 
-    needs: build
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: Swatinem/rust-cache@v2
-    - name: Build docs
-      run:  cargo doc --document-private-items --workspace --all-features --no-deps
-    needs: build
-    env:
-      RUSTDOCFLAGS: -Dwarnings
+      - name: Build docs
+        run:  cargo doc --document-private-items --workspace --all-features --no-deps
+      env:
+        RUSTDOCFLAGS: -Dwarnings
   test:
     runs-on: ubuntu-latest
     steps:
