@@ -1,0 +1,5 @@
+error: expected `,`
+ --> src/compile_tests/fail/redact_all_with_value.rs:4:14
+  |
+4 | #[redact(all = "ASDF")]
+  |              ^

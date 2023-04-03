@@ -25,5 +25,6 @@ fail_tests! {
     redactable_inner_flags,
     redactable_multiple_fields,
     redactable_non_struct,
+    redact_all_with_value,
     redactable_unknown_flag
 }

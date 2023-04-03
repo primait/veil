@@ -1,5 +1,5 @@
 use std::num::NonZeroU8;
-use syn::{spanned::Spanned, LitInt, LitChar};
+use syn::{spanned::Spanned, LitChar, LitInt};
 
 pub struct FieldFlagsParse {
     pub skip_allowed: bool,
