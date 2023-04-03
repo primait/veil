@@ -3,7 +3,8 @@ name: Continous Deployment
 on:
   release:
     types: [published]
-  workflow_dispatch:
+  # debug
+  push:
 
 env:
   CARGO_TERM_COLOR: always
