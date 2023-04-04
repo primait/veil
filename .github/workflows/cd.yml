@@ -3,8 +3,6 @@ name: Continous Deployment
 on:
   release:
     types: [published]
-  # debug
-  push:
 
 env:
   CARGO_TERM_COLOR: always
@@ -24,4 +22,4 @@ jobs:
         env:
           CARGO_AUTH_KEY: ${{ secrets.CARGO_AUTH_KEY }}
       - name: publish
-        run: cargo release publish --no-confirm --allow-branch "*" --workspace --all-features # --execute
+        run: cargo release publish --no-confirm --allow-branch "*" --workspace --all-features --execute
