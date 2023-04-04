@@ -8,6 +8,7 @@ macro_rules! fail_tests {
 }
 fail_tests! {
     redact_invalid_flags,
+    redact_attribute_key_value,
     redact_all_on_field,
     redact_all_variant_on_variant,
     redact_enum_without_variant,

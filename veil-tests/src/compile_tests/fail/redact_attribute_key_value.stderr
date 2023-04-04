@@ -1,0 +1,5 @@
+error: Expected a list or an empty attribute
+ --> src/compile_tests/fail/redact_attribute_key_value.rs:4:1
+  |
+4 | #[redact = "ASDF"]
+  | ^^^^^^^^^^^^^^^^^^

@@ -65,7 +65,7 @@ pub trait ExtractFlags: Sized + Copy + Default {
                 Ok(Some(flags))
             }
             syn::Meta::Path(_) => Ok(Some(flags)),
-            _ => todo!(),
+            _ => Err(syn::Error::new_spanned(attr, "Expected a list or an empty attribute")),
         }
     }
 
