@@ -6,7 +6,7 @@ use quote::ToTokens;
 use syn::spanned::Spanned;
 
 #[rustfmt::skip]
-/// Returns whether a syn::Type is an [`Option<T>`]
+/// Returns whether a [`syn::Type`] is an [`Option<T>`]
 ///
 /// We try and match as many possible paths as possible because
 /// some macros can output very verbose paths to items.
