@@ -1,16 +1,16 @@
-error: unknown attribute for `Redactable` attribute
+error: unknown modifier for `Redactable` attribute
  --> src/compile_tests/fail/redactable_unknown_flag.rs:4:10
   |
 4 | #[redact(skip)]
   |          ^^^^
 
-error: unknown attribute for `Redactable` attribute
+error: unknown modifier for `Redactable` attribute
   --> src/compile_tests/fail/redactable_unknown_flag.rs:10:10
    |
 10 | #[redact(all)]
    |          ^^^
 
-error: unknown attribute for `Redactable` attribute
+error: unknown modifier for `Redactable` attribute
   --> src/compile_tests/fail/redactable_unknown_flag.rs:16:10
    |
 16 | #[redact(blah)]

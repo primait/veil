@@ -24,7 +24,7 @@ pub trait ExtractFlags: Sized + Copy + Default {
     ) -> Result<(), syn::Error> {
         match self.try_parse_meta(meta)? {
             ParseMeta::Consumed => Ok(()),
-            ParseMeta::Unrecognised => Err(meta.error(format!("unknown attribute for `{derive_name}` attribute"))),
+            ParseMeta::Unrecognised => Err(meta.error(format!("unknown modifier for `{derive_name}` attribute"))),
         }
     }
 
