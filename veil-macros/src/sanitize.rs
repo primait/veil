@@ -3,7 +3,7 @@ pub(crate) trait AttributeFilter {
 }
 impl AttributeFilter for Vec<syn::Attribute> {
     fn retain_veil_attrs(&mut self) {
-        self.retain(|attr| attr.path.is_ident("redact"));
+        self.retain(|attr| attr.path().is_ident("redact"));
     }
 }
 impl AttributeFilter for syn::Field {
