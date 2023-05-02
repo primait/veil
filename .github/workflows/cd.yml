@@ -15,7 +15,7 @@ jobs:
       - name: install cargo-release
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-release@24
+          tool: cargo-release@0.24
       - name: login
         run: cargo login "$CARGO_AUTH_KEY"
         env:
