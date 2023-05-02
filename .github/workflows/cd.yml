@@ -1,4 +1,4 @@
-name: Continous Deployment
+name: CD
 
 on:
   release:
@@ -16,7 +16,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-release@24
-      - name: login 
+      - name: login
         run: cargo login "$CARGO_AUTH_KEY"
         env:
           CARGO_AUTH_KEY: ${{ secrets.CARGO_AUTH_KEY }}

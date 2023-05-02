@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CI
 
 on: [push, pull_request]
 
@@ -10,6 +10,7 @@ jobs:
     # Avoid duplicate jobs on PR from a branch on the same repo
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
+    name: "Continuous Integration / lint"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +29,7 @@ jobs:
     # Avoid duplicate jobs on PR from a branch on the same repo
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
+    name: "Continuous Integration / test"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
