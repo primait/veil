@@ -3,7 +3,7 @@ files:
     pattern: "\\[package\\][\\s\\S]*?version = \"{version}\""
 
   - path: Cargo.toml
-    pattern: "veil-macros = . path = \"veil-macros\", version = \"{version}\" ."
+    pattern: "veil-macros = . path = \"veil-macros\", version = \"={version}\" ."
 
   - path: veil-macros/Cargo.toml
     pattern: "\\[package\\][\\s\\S]*?version = \"{version}\""
