@@ -152,9 +152,7 @@ pub(super) fn derive_redact(
             }
         }
         syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }) => {
-            let args = (0..unnamed.len())
-                .into_iter()
-                .map(|i| syn::Ident::new(&format!("arg{i}"), unnamed.span()));
+            let args = (0..unnamed.len()).map(|i| syn::Ident::new(&format!("arg{i}"), unnamed.span()));
             quote! {
                 ( #(#args),* )
             }
