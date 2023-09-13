@@ -243,7 +243,7 @@ fn test_redact_multiple_attributes() {
         #[redact]
         #[serde(default)]
         bool,
-        bool,
+        #[serde(default)] bool,
     );
 
     #[derive(Serialize, Deserialize, Redact, RandGen)]
@@ -253,7 +253,7 @@ fn test_redact_multiple_attributes() {
         #[serde(default)]
         #[redact(partial)]
         bool,
-        bool,
+        #[serde(default)] bool,
     );
 
     #[derive(Serialize, Deserialize, Redact, RandGen)]
