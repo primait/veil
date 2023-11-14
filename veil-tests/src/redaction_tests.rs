@@ -136,7 +136,14 @@ fn test_sensitive_structs_with_options() {
     }
 
     assert_eq!(
-        format!("{:?}", SensitiveStruct { data1: Some("1234567890"), data2: Some("1234567890"), data3: None }),
+        format!(
+            "{:?}",
+            SensitiveStruct {
+                data1: Some("1234567890"),
+                data2: Some("1234567890"),
+                data3: None
+            }
+        ),
         "SensitiveStruct { data1: Some(\"**********\"), data2: Some(\"123****890\"), data3: None }"
     );
 }
