@@ -11,7 +11,7 @@ pub struct Customer {
     last_name: String,
 
     #[redact]
-    email: String,
+    email: Option<String>,
 
     #[redact(fixed = 2)]
     age: u32,
@@ -24,7 +24,7 @@ fn main() {
             id: 1,
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
-            email: "johndoe@example.com".to_string(),
+            email: Some("johndoe@example.com".to_string()),
             age: 30,
         }
     );

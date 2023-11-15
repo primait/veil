@@ -122,6 +122,33 @@ fn test_sensitive_structs() {
 }
 
 #[test]
+fn test_sensitive_structs_with_options() {
+    #[derive(Redact)]
+    struct SensitiveStruct {
+        #[redact]
+        data1: Option<&'static str>,
+
+        #[redact(partial)]
+        data2: Option<&'static str>,
+
+        #[redact]
+        data3: Option<&'static str>,
+    }
+
+    assert_eq!(
+        format!(
+            "{:?}",
+            SensitiveStruct {
+                data1: Some("1234567890"),
+                data2: Some("1234567890"),
+                data3: None
+            }
+        ),
+        "SensitiveStruct { data1: Some(\"**********\"), data2: Some(\"123****890\"), data3: None }"
+    );
+}
+
+#[test]
 fn test_sensitive_tuple_structs() {
     #[derive(Redact)]
     struct SensitiveStruct(

@@ -167,7 +167,11 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
                     .and_then(|inner| inner.strip_suffix(')'))
                 {
                     fmt.write_str("Some(")?;
-                    self.flags.redact_partial(fmt, inner)?;
+                    if let RedactionLength::Partial = &self.flags.redact_length {
+                        self.flags.redact_partial(fmt, inner)?;
+                    } else {
+                        self.flags.redact_full(fmt, inner)?;
+                    }
                     return fmt.write_char(')');
                 } else {
                     // This should never happen, but just in case...
