@@ -88,11 +88,11 @@ pub enum RedactionLength {
 impl quote::ToTokens for RedactionLength {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
-            RedactionLength::Full => quote! { ::veil::private::RedactionLength::Full }.to_tokens(tokens),
-            RedactionLength::Partial => quote! { ::veil::private::RedactionLength::Partial }.to_tokens(tokens),
+            RedactionLength::Full => quote! { veil::private::RedactionLength::Full }.to_tokens(tokens),
+            RedactionLength::Partial => quote! { veil::private::RedactionLength::Partial }.to_tokens(tokens),
             RedactionLength::Fixed(n) => {
                 let n = n.get();
-                quote! { ::veil::private::RedactionLength::Fixed(::core::num::NonZeroU8::new(#n).unwrap()) }
+                quote! { veil::private::RedactionLength::Fixed(::core::num::NonZeroU8::new(#n).unwrap()) }
                     .to_tokens(tokens)
             }
         }

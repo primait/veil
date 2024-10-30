@@ -48,19 +48,19 @@ fn try_derive(mut item: syn::DeriveInput) -> Result<TokenStream, syn::Error> {
     let name_ident = &item.ident;
     let (impl_generics, ty_generics, where_clause) = item.generics.split_for_impl();
     Ok(quote! {
-        impl #impl_generics ::veil::Redactable for #name_ident #ty_generics #where_clause {
+        impl #impl_generics veil::Redactable for #name_ident #ty_generics #where_clause {
             fn redact(&self) -> String {
-                ::veil::private::derived_redactable(
+                veil::private::derived_redactable(
                     self,
-                    ::veil::private::RedactFlags { #flags }
+                    veil::private::RedactFlags { #flags }
                 )
             }
 
             fn redact_into(&self, buffer: &mut dyn ::std::fmt::Write) -> ::std::fmt::Result {
                 buffer.write_str(
-                    ::veil::private::derived_redactable(
+                    veil::private::derived_redactable(
                         self,
-                        ::veil::private::RedactFlags { #flags }
+                        veil::private::RedactFlags { #flags }
                     )
                     .as_str()
                 )
