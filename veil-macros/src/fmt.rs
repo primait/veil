@@ -162,7 +162,7 @@ pub(crate) fn generate_redact_call(
         unused.redacted_something();
 
         let specialization = if is_option {
-            quote! { ::std::option::Option::Some(::veil::private::RedactSpecialization::Option) }
+            quote! { ::std::option::Option::Some(veil::private::RedactSpecialization::Option) }
         } else {
             quote! { ::std::option::Option::None }
         };
@@ -170,18 +170,18 @@ pub(crate) fn generate_redact_call(
         if field_flags.display {
             // std::fmt::Display
             quote! {
-                &::veil::private::RedactionFormatter {
-                    this: ::veil::private::RedactionTarget::Display(#field_accessor),
-                    flags: ::veil::private::RedactFlags { #field_flags },
+                &veil::private::RedactionFormatter {
+                    this: veil::private::RedactionTarget::Display(#field_accessor),
+                    flags: veil::private::RedactFlags { #field_flags },
                     specialization: #specialization
                 }
             }
         } else {
             // std::fmt::Debug
             quote! {
-                &::veil::private::RedactionFormatter {
-                    this: ::veil::private::RedactionTarget::Debug { this: #field_accessor, alternate },
-                    flags: ::veil::private::RedactFlags { #field_flags },
+                &veil::private::RedactionFormatter {
+                    this: veil::private::RedactionTarget::Debug { this: #field_accessor, alternate },
+                    flags: veil::private::RedactFlags { #field_flags },
                     specialization: #specialization
                 }
             }

@@ -11,13 +11,13 @@ pub enum RedactSpecialization {
     /// This could be improved & rid of in a number of different ways in the future:
     ///
     /// * Once specialization is stabilized, we can use a trait to override redacting behavior for some types,
-    /// one of which would be [`Option<T>`].
+    ///   one of which would be [`Option<T>`].
     ///
     /// * Once std::ptr::metadata and friends are stabilized, we could use it to unsafely cast the dyn Debug pointer
-    /// to a concrete [`Option<T>`] and redact it directly. Probably not the best idea.
+    ///   to a concrete [`Option<T>`] and redact it directly. Probably not the best idea.
     ///
     /// * Once trait upcasting is stabilized, we could use it to upcast the dyn Debug pointer to a dyn Any and then
-    /// downcast it to a concrete [`Option<T>`] and redact it directly.
+    ///   downcast it to a concrete [`Option<T>`] and redact it directly.
     Option,
 }
 
@@ -127,12 +127,13 @@ impl RedactionTarget<'_> {
         }
     }
 }
-impl ToString for RedactionTarget<'_> {
-    fn to_string(&self) -> String {
+
+impl Display for RedactionTarget<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         match self {
-            RedactionTarget::Debug { this, alternate: false } => format!("{:?}", this),
-            RedactionTarget::Debug { this, alternate: true } => format!("{:#?}", this),
-            RedactionTarget::Display(this) => this.to_string(),
+            RedactionTarget::Debug { this, alternate: false } => write!(f, "{:?}", this),
+            RedactionTarget::Debug { this, alternate: true } => write!(f, "{:#?}", this),
+            RedactionTarget::Display(this) => write!(f, "{}", this),
         }
     }
 }
