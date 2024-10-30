@@ -214,3 +214,9 @@ impl RedactorBuilder {
         Ok(Redactor(flags))
     }
 }
+
+impl Default for RedactorBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
