@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Breaking: de-anchor veil imports, to allow for reimporting.
+- Breaking: de-anchor veil imports, to allow for reexporting.
 
 This might cause issues in some very rare cases, but generally shouldn't require any changes.
 
