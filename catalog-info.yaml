@@ -6,4 +6,4 @@ metadata:
 spec:
   type: library
   lifecycle: production
-  owner: team-shared-services
+  owner: team-developer-experience
