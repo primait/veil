@@ -134,15 +134,10 @@ impl ExtractFlags for RedactFlags {
                 return TryParseMeta::Err(meta.error("`fixed` clashes with an existing redaction length flag"));
             }
             let int: LitInt = meta.value()?.parse()?;
-            self.redact_length = RedactionLength::Fixed(
-                match int.base10_parse::<u8>().and_then(|int| {
-                    NonZeroU8::new(int)
-                        .ok_or_else(|| syn::Error::new_spanned(int, "fixed redacting width must be greater than zero"))
-                }) {
-                    Ok(fixed) => fixed,
-                    Err(err) => return TryParseMeta::Err(err),
-                },
-            )
+            self.redact_length = RedactionLength::Fixed(int.base10_parse::<u8>().and_then(|int| {
+                NonZeroU8::new(int)
+                    .ok_or_else(|| syn::Error::new_spanned(int, "fixed redacting width must be greater than zero"))
+            })?)
         } else {
             return Ok(ParseMeta::Unrecognised);
         }
