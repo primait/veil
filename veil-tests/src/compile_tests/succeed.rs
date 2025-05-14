@@ -1,7 +1,7 @@
 //! Tests that ensure that the compiler can compile the code.
+#![allow(unused, dead_code)]
 
-#![allow(unused)]
-
+use rand::prelude::*;
 use veil::*;
 
 #[derive(Redact)]
@@ -217,10 +217,10 @@ fn test_redact_tuple_struct() {
 
 #[test]
 fn test_redact_multiple_attributes() {
-    use rand_derive2::RandGen;
+    use arbitrary::{Arbitrary, Unstructured};
     use serde::{Deserialize, Serialize};
 
-    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[derive(Serialize, Deserialize, Redact, Arbitrary)]
     struct MultipleAttributes {
         #[redact]
         #[serde(default)]
@@ -228,7 +228,7 @@ fn test_redact_multiple_attributes() {
         bar: bool,
     }
 
-    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[derive(Serialize, Deserialize, Redact, Arbitrary)]
     #[serde(rename_all = "camelCase")]
     #[redact(all)]
     struct MultipleAttributesAll {
@@ -238,7 +238,7 @@ fn test_redact_multiple_attributes() {
         bar: bool,
     }
 
-    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[derive(Serialize, Deserialize, Redact, Arbitrary)]
     struct MultipleAttributesTuple(
         #[redact]
         #[serde(default)]
@@ -246,7 +246,7 @@ fn test_redact_multiple_attributes() {
         #[serde(default)] bool,
     );
 
-    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[derive(Serialize, Deserialize, Redact, Arbitrary)]
     #[serde(rename_all = "camelCase")]
     #[redact(all)]
     struct MultipleAttributesAllTuple(
@@ -256,7 +256,7 @@ fn test_redact_multiple_attributes() {
         #[serde(default)] bool,
     );
 
-    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[derive(Serialize, Deserialize, Redact, Arbitrary)]
     #[serde(rename_all = "camelCase")]
     enum MultipleAttributesEnum {
         #[serde(rename = "foo")]
@@ -282,7 +282,7 @@ fn test_redact_multiple_attributes() {
         ),
     }
 
-    #[derive(Serialize, Deserialize, Redact, RandGen)]
+    #[derive(Serialize, Deserialize, Redact, Arbitrary)]
     #[serde(rename_all = "camelCase")]
     #[redact(all, variant)]
     enum MultipleAttributesEnumAll {
@@ -323,10 +323,18 @@ fn test_redact_multiple_attributes() {
     assert!(!attributes.foo);
     assert!(attributes.bar);
 
+    let mut rng = rand_pcg::Pcg64Mcg::new(
+        // chosen by a fair dice roll
+        // guarnteed to be random
+        // (deterministic RNG keeps our test runs consistent)
+        221,
+    );
     macro_rules! test_serde_attributes {
         {$($ty:ty),*} => {
             $({
-                let random = <$ty>::generate_random();
+                // Arbitrary can fail if there isn't enough data, 1024 should be enough for everything
+                let data = rng.random::<[u8;1024]>();
+                let random = <$ty>::arbitrary(&mut Unstructured::new(&data)).unwrap();
                 let json = serde_json::to_string(&random).unwrap();
                 serde_json::from_str::<$ty>(&json).unwrap();
             })*
