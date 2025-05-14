@@ -1,7 +1,6 @@
 //! Tests that ensure that the compiler can compile the code.
 #![allow(unused, dead_code)]
 
-use rand::prelude::*;
 use veil::*;
 
 #[derive(Redact)]
@@ -218,6 +217,7 @@ fn test_redact_tuple_struct() {
 #[test]
 fn test_redact_multiple_attributes() {
     use arbitrary::{Arbitrary, Unstructured};
+    use rand::prelude::*;
     use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, Redact, Arbitrary)]
