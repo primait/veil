@@ -131,9 +131,9 @@ impl RedactionTarget<'_> {
 impl Display for RedactionTarget<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         match self {
-            RedactionTarget::Debug { this, alternate: false } => write!(f, "{:?}", this),
-            RedactionTarget::Debug { this, alternate: true } => write!(f, "{:#?}", this),
-            RedactionTarget::Display(this) => write!(f, "{}", this),
+            RedactionTarget::Debug { this, alternate: false } => write!(f, "{this:?}"),
+            RedactionTarget::Debug { this, alternate: true } => write!(f, "{this:#?}"),
+            RedactionTarget::Display(this) => write!(f, "{this}"),
         }
     }
 }
