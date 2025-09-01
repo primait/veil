@@ -11,7 +11,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: install cargo-release
         uses: taiki-e/install-action@020705266844b275b711684191e11281be48860c # ratchet:taiki-e/install-action@v2
         with:
