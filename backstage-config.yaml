@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: veil
+  description: Rust derive macro for redacting sensitive data in `std::fmt::Debug`
+spec:
+  type: library
+  lifecycle: production
+  owner: team-developer-experience
