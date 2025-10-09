@@ -1,11 +1,15 @@
 [package]
 name = "veil"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Rust derive macro for redacting sensitive data in `std::fmt::Debug`"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/primait/veil"
-categories = ["rust-patterns", "development-tools::debugging", "value-formatting"]
+categories = [
+  "rust-patterns",
+  "development-tools::debugging",
+  "value-formatting",
+]
 keywords = ["redaction", "masking", "redact", "privacy", "sensitive"]
 
 [package.metadata.docs.rs]
@@ -13,11 +17,13 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [workspace]
-members = ["veil-macros", "veil-tests",
-# Because those tests deal with global state we need to run them in a separate process.
-# The easiest/only way to do this with the standard rust test harness is to put them in a
-# separate crate
-"veil-tests/disable-redaction-test"
+members = [
+  "veil-macros",
+  "veil-tests",
+  # Because those tests deal with global state we need to run them in a separate process.
+  # The easiest/only way to do this with the standard rust test harness is to put them in a
+  # separate crate
+  "veil-tests/disable-redaction-test",
 ]
 
 [features]
@@ -28,7 +34,7 @@ name = "disable_redaction"
 required-features = ["toggle"]
 
 [dependencies]
-veil-macros = { path = "veil-macros", version = "=0.2.0" }
+veil-macros = { path = "veil-macros", version = "=0.2.1" }
 once_cell = "1"
 
 [dev-dependencies]
