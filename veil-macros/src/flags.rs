@@ -75,7 +75,7 @@ pub trait ExtractFlags: Sized + Copy + Default {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum RedactionLength {
+pub enum RedactionMode {
     /// Redact the entire data.
     Full,
 
@@ -84,24 +84,27 @@ pub enum RedactionLength {
 
     /// Whether to redact with a fixed width, ignoring the length of the data.
     Fixed(NonZeroU8),
+    Secret,
 }
-impl quote::ToTokens for RedactionLength {
+impl quote::ToTokens for RedactionMode {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
-            RedactionLength::Full => quote! { veil::private::RedactionLength::Full }.to_tokens(tokens),
-            RedactionLength::Partial => quote! { veil::private::RedactionLength::Partial }.to_tokens(tokens),
-            RedactionLength::Fixed(n) => {
+            RedactionMode::Full => quote! { veil::private::RedactionMode::Full }.to_tokens(tokens),
+            RedactionMode::Partial => quote! { veil::private::RedactionMode::Partial }.to_tokens(tokens),
+            RedactionMode::Fixed(n) => {
                 let n = n.get();
-                quote! { veil::private::RedactionLength::Fixed(::core::num::NonZeroU8::new(#n).unwrap()) }
+                quote! { veil::private::RedactionMode::Fixed(::core::num::NonZeroU8::new(#n).unwrap()) }
                     .to_tokens(tokens)
             }
+            RedactionMode::Secret => quote! { veil::private::RedactionMode::Secret }.to_tokens(tokens),
         }
     }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct RedactFlags {
-    pub redact_length: RedactionLength,
+    /// The redaction length. Defaults to the full length.
+    pub redact_mode: RedactionMode,
 
     /// The character to use for redacting. Defaults to `*`.
     pub redact_char: char,
@@ -109,7 +112,7 @@ pub struct RedactFlags {
 impl Default for RedactFlags {
     fn default() -> Self {
         Self {
-            redact_length: RedactionLength::Full,
+            redact_mode: RedactionMode::Full,
             redact_char: '*',
         }
     }
@@ -120,24 +123,30 @@ impl ExtractFlags for RedactFlags {
     fn try_parse_meta(&mut self, meta: &mut syn::meta::ParseNestedMeta) -> TryParseMeta {
         // #[redact(partial)]
         if meta.path.is_ident("partial") {
-            if self.redact_length != RedactionLength::Full {
+            if self.redact_mode != RedactionMode::Full {
                 return TryParseMeta::Err(meta.error("`partial` clashes with an existing redaction length flag"));
             }
-            self.redact_length = RedactionLength::Partial;
+            self.redact_mode = RedactionMode::Partial;
         // #[redact(with = 'X')]
         } else if meta.path.is_ident("with") {
             let ch: LitChar = meta.value()?.parse()?;
             self.redact_char = ch.value();
-            // #[redact(fixed = u8)]
+        // #[redact(fixed = u8)]
         } else if meta.path.is_ident("fixed") {
-            if self.redact_length != RedactionLength::Full {
+            if self.redact_mode != RedactionMode::Full {
                 return TryParseMeta::Err(meta.error("`fixed` clashes with an existing redaction length flag"));
             }
             let int: LitInt = meta.value()?.parse()?;
-            self.redact_length = RedactionLength::Fixed(int.base10_parse::<u8>().and_then(|int| {
+            self.redact_mode = RedactionMode::Fixed(int.base10_parse::<u8>().and_then(|int| {
                 NonZeroU8::new(int)
                     .ok_or_else(|| syn::Error::new_spanned(int, "fixed redacting width must be greater than zero"))
             })?)
+        // #[redact(secret)]
+        } else if meta.path.is_ident("secret") {
+            if self.redact_mode != RedactionMode::Full {
+                return TryParseMeta::Err(meta.error("`secret` clashes with redaction mode flags"));
+            }
+            self.redact_mode = RedactionMode::Secret;
         } else {
             return Ok(ParseMeta::Unrecognised);
         }
@@ -147,14 +156,14 @@ impl ExtractFlags for RedactFlags {
 impl quote::ToTokens for RedactFlags {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
-            redact_length,
+            redact_mode,
             redact_char,
             ..
         } = self;
 
         tokens.extend(quote! {
-            redact_length: #redact_length,
-            redact_char: #redact_char
+                    redact_mode: #redact_mode,
+                    redact_char: #redact_char,
         });
     }
 }
@@ -180,6 +189,7 @@ pub struct FieldFlags {
     /// Flags that modify the redaction behavior.
     pub redact: RedactFlags,
 }
+
 impl ExtractFlags for FieldFlags {
     type Options = FieldFlagsParse;
 

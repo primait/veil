@@ -4,6 +4,31 @@
 use veil::*;
 
 #[derive(Redact)]
+struct Config {
+    #[redact(secret)]
+    credential: String,
+    #[redact]
+    url: String,
+}
+
+#[derive(Redact)]
+#[redact(all)]
+struct TopSecret {
+    #[redact(secret)]
+    super_secret_codes: String,
+    #[redact(secret)]
+    treasure_location: Address,
+    #[redact(secret, with = 'X')]
+    x_marks_the_spot: String,
+    #[redact(partial)]
+    teasing: String,
+    #[redact(secret, display)]
+    does_this_work: String,
+    #[redact]
+    not_so_secret: String,
+}
+
+#[derive(Redact)]
 struct CreditCard {
     #[redact]
     cvv: String,

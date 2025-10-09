@@ -3,13 +3,13 @@ fn main() {}
 #[derive(veil::Redact)]
 struct Foo {
     #[redact(partial, fixed = 3)]
-    bar: String
+    bar: String,
 }
 
 #[derive(veil::Redact)]
 struct Bar {
     #[redact(fixed = 3, partial)]
-    baz: String
+    baz: String,
 }
 
 #[derive(veil::Redact)]
@@ -18,7 +18,7 @@ enum Baz {
     Foo {
         #[redact(fixed = 3, partial)]
         bar: String,
-    }
+    },
 }
 
 #[derive(veil::Redact)]
@@ -27,5 +27,5 @@ enum Qux {
     Foo {
         #[redact(partial, fixed = 3)]
         bar: String,
-    }
+    },
 }

@@ -200,7 +200,13 @@ fn test_named_display_redaction() {
     }
 
     assert_eq!(
-        format!("{:?}", RedactMultipleNamedDisplay { foo: DEBUGGY_PHRASE.to_string(), bar: DEBUGGY_PHRASE.to_string() }),
+        format!(
+            "{:?}",
+            RedactMultipleNamedDisplay {
+                foo: DEBUGGY_PHRASE.to_string(),
+                bar: DEBUGGY_PHRASE.to_string()
+            }
+        ),
         "RedactMultipleNamedDisplay { foo: ***** \"*******\"!\n*** ****'* *** *******..., bar: \"***** \\\"*******\\\"!\\**** ****'* *** *******...\" }"
     );
 }
@@ -218,7 +224,13 @@ fn test_enum_display_redaction() {
     }
 
     assert_eq!(
-        format!("{:?}", RedactEnum::Foo { foo: DEBUGGY_PHRASE.to_string(), bar: DEBUGGY_PHRASE.to_string() }),
+        format!(
+            "{:?}",
+            RedactEnum::Foo {
+                foo: DEBUGGY_PHRASE.to_string(),
+                bar: DEBUGGY_PHRASE.to_string()
+            }
+        ),
         "Foo { foo: ***** \"*******\"!\n*** ****'* *** *******..., bar: \"***** \\\"*******\\\"!\\**** ****'* *** *******...\" }"
     );
 }
@@ -315,6 +327,7 @@ fn test_derive_redactable_dyn() {
 #[test]
 fn test_enum_variant_names() {
     #[derive(Debug)]
+    #[allow(dead_code)]
     enum Control {
         Foo(String),
         Bar,
