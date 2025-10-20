@@ -3,7 +3,7 @@ use veil::Redact;
 #[derive(Redact)]
 struct AuthInfo {
     login: String,
-    #[redact(fixed = 3, with = 'X')]
+    #[redact(fixed = 3)]
     password: String,
 }
 
