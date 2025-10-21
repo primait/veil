@@ -162,6 +162,7 @@ impl Redactor {
 pub struct RedactorBuilder {
     redact_char: Option<char>,
     partial: bool,
+    skip_non_alphanumeric: bool,
 }
 impl RedactorBuilder {
     /// Initialize a new redaction flag builder.
@@ -170,6 +171,7 @@ impl RedactorBuilder {
         Self {
             redact_char: None,
             partial: false,
+            skip_non_alphanumeric: true,
         }
     }
 
@@ -191,25 +193,30 @@ impl RedactorBuilder {
         self
     }
 
+    /// Redact all utf8 characters, not just the alphanumeric ones.
+    ///
+    /// Equivalent to `#[redact(all_utf8)]` when deriving.
+    #[inline(always)]
+    pub const fn all_utf8(mut self) -> Self {
+        self.skip_non_alphanumeric = false;
+        self
+    }
+
     /// Build the redaction flags.
     ///
     /// Returns an error if the state of the builder is invalid.
     /// The error will be optimised away by the compiler if the builder is valid at compile time, so it's safe and zero-cost to use `unwrap` on the result if you are constructing this at compile time.
     #[inline(always)]
     pub const fn build(self) -> Result<Redactor, &'static str> {
-        let mut flags = RedactFlags {
+        let flags = RedactFlags {
             redact_length: if self.partial {
                 RedactionLength::Partial
             } else {
                 RedactionLength::Full
             },
-
-            redact_char: '*',
+            skip_non_alphanumeric: self.skip_non_alphanumeric,
+            redact_char: if let Some(ch) = self.redact_char { ch } else { '*' },
         };
-
-        if let Some(char) = self.redact_char {
-            flags.redact_char = char;
-        }
 
         Ok(Redactor(flags))
     }

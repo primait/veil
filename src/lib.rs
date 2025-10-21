@@ -6,7 +6,7 @@
 //! The purpose of this macro is to allow for easy, configurable and efficient redaction of sensitive data in structs and enum variants.
 //! This can be used to hide sensitive data in logs or anywhere where personal data should not be exposed or stored.
 //!
-//! Redaction is unicode-aware. Only alphanumeric characters are redacted. Whitespace, symbols and other characters are left as-is.
+//! Redaction is unicode-aware by default. Unless opted out of, only alphanumeric characters are redacted. Whitespace, symbols and other characters are left as-is.
 //!
 //! # Controlling Redaction
 //!
@@ -19,6 +19,7 @@
 //! | **Modifier**                   |   | **Effects**                                                                                                                                                                          |   | **Default**                                   |
 //! |--------------------------------|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|-----------------------------------------------|
 //! | `#[redact(partial)]`           |   | If the string is long enough, a small part of the<br>beginning and end will be exposed. If the string is too short to securely expose a portion of it, it will be redacted entirely. |   | Disabled. The entire string will be redacted. |
+//! | `#[redact(all_utf8)]`          |   | Overrides the redaction behavior to redact all characters instead of just alphanumeric characters.                                                                                   |   | Disabled.                                     |
 //! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                               |   | `'*'`                                         |
 //! | `#[redact(fixed = <integer>)]` |   | If this modifier is present, the length and contents of<br>the string are completely ignored and the string will always<br>be redacted as a fixed number of redaction characters.    |   | Disabled.                                     |
 //! | `#[redact(display)]`           |   | Overrides the redaction behavior to use the type's [`Display`](std::fmt::Display) implementation instead of [`Debug`].                                                               |   | Disabled.                                     |
@@ -40,7 +41,7 @@
 //! ```rust
 //! # use veil_macros::Redact;
 //! #[derive(Redact)]
-//! #[redact(all, partial, with = 'X')]
+//! #[redact(all, partial, with = 'X', all_utf8)]
 //! struct Foo {
 //!     redact_me: String,
 //!     also_redact_me: String,
@@ -56,10 +57,10 @@
 //! # use veil_macros::Redact;
 //! #[derive(Redact)]
 //! struct Foo {
-//!     #[redact(partial, with = 'X')]
+//!     #[redact(partial, with = 'X', all_utf8)]
 //!     redact_me: String,
 //!
-//!     #[redact(partial, with = 'X')]
+//!     #[redact(partial, with = 'X', all_utf8)]
 //!     also_redact_me: String,
 //!
 //!     do_not_redact_me: String,
