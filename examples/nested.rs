@@ -1,3 +1,5 @@
+// Redaction works with nested structures too!
+
 use veil::Redact;
 
 #[derive(Redact)]

@@ -1,3 +1,7 @@
+// If you are developing and want to disable redaction, you can!
+//
+// Beware of using this option in staging or production
+
 use std::env;
 use veil::Redact;
 

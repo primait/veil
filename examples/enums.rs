@@ -13,10 +13,11 @@ enum CreditCardIssuer {
     Jcb,
     UnionPay,
 
-    #[redact(variant, skip)] // Don't redact the name of this variant
+    // Don't redact the name of this variant
+    #[redact(variant, skip)]
     Other(
-        #[redact] // But do redact the contents of this field!
-        String,
+        // But do redact the contents of this field!
+        #[redact] String,
     ),
 }
 
