@@ -1,3 +1,7 @@
+// By default, redaction will be applied to alphabetic characters. If you want to fully redact
+// secrets, passwords, emails and so on, you can use the `fixed` option, which will also hide the
+// length of the original string
+
 use veil::Redact;
 
 #[derive(Redact)]
