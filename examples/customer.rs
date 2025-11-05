@@ -22,8 +22,12 @@ fn main() {
         "{:#?}",
         Customer {
             id: 1,
-            first_name: "John".to_string(),
+            // This will be partially redacted
+            first_name: "Johnathan".to_string(),
+            // This will be fully redacted since the number of characters is not sufficient for
+            // partial redaction
             last_name: "Doe".to_string(),
+            // By default, only alphabetic characters are redacted
             email: Some("johndoe@example.com".to_string()),
             age: 30,
         }
