@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: install cargo-release
-        uses: taiki-e/install-action@81ee1d48d9194cdcab880cbdc7d36e87d39874cb # ratchet:taiki-e/install-action@v2
+        uses: taiki-e/install-action@6cc14f7f2f4b3129aff07a8b071d2d4f2733465d # ratchet:taiki-e/install-action@v2
         with:
           tool: cargo-release@0.24
       - name: login
