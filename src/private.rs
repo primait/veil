@@ -21,8 +21,8 @@ pub enum RedactSpecialization {
     Option,
 }
 
-#[derive(Clone, Copy)]
-pub enum RedactionLength {
+#[derive(Clone, Copy, PartialEq)]
+pub enum RedactionMode {
     /// Redact the entire data.
     Full,
 
@@ -31,12 +31,15 @@ pub enum RedactionLength {
 
     /// Whether to redact with a fixed width, ignoring the length of the data.
     Fixed(NonZeroU8),
+
+    /// Whether to redact completely and always, regardless of configuration
+    Secret,
 }
 
 #[derive(Clone, Copy)]
 pub struct RedactFlags {
     /// How much of the data to redact.
-    pub redact_length: RedactionLength,
+    pub redact_mode: RedactionMode,
 
     /// What character to use for redacting.
     pub redact_char: char,
@@ -87,7 +90,9 @@ impl RedactFlags {
 
     pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
         for char in to_redact.chars() {
-            if char.is_whitespace() || !char.is_alphanumeric() {
+            if self.redact_mode == RedactionMode::Secret {
+                fmt.write_char(self.redact_char)?;
+            } else if char.is_whitespace() || !char.is_alphanumeric() {
                 fmt.write_char(char)?;
             } else {
                 fmt.write_char(self.redact_char)?;
@@ -146,11 +151,11 @@ pub struct RedactionFormatter<'a> {
 impl std::fmt::Debug for RedactionFormatter<'_> {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[cfg(feature = "toggle")]
-        if crate::toggle::get_redaction_behavior().is_plaintext() {
+        if crate::toggle::get_redaction_behavior().is_plaintext() && self.flags.redact_mode != RedactionMode::Secret {
             return self.this.passthrough(fmt);
         }
 
-        if let RedactionLength::Fixed(n) = &self.flags.redact_length {
+        if let RedactionMode::Fixed(n) = &self.flags.redact_mode {
             return RedactFlags::redact_fixed(fmt, n.get() as usize, self.flags.redact_char);
         }
 
@@ -168,7 +173,7 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
                     .and_then(|inner| inner.strip_suffix(')'))
                 {
                     fmt.write_str("Some(")?;
-                    if let RedactionLength::Partial = &self.flags.redact_length {
+                    if let RedactionMode::Partial = &self.flags.redact_mode {
                         self.flags.redact_partial(fmt, inner)?;
                     } else {
                         self.flags.redact_full(fmt, inner)?;
@@ -183,7 +188,7 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
             None => {}
         }
 
-        if let RedactionLength::Partial = &self.flags.redact_length {
+        if let RedactionMode::Partial = &self.flags.redact_mode {
             self.flags.redact_partial(fmt, &redactable_string)
         } else {
             self.flags.redact_full(fmt, &redactable_string)

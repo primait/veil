@@ -14,7 +14,7 @@ Add to your Cargo.toml:
 
 ```toml
 [dependencies]
-veil = "0.2.0"
+veil = "0.2.1"
 ```
 
 Usage documentation can be found [here](https://docs.rs/veil).
@@ -88,12 +88,14 @@ enum InsuranceStatus {
 
 # Environmental Awareness
 
-In testing environments it may be useful to disable redaction entirely. You can globally disable Veil's redaction behavior at runtime by enabling the *non-default* feature flag `toggle` and:
+In testing environments it may be useful to disable redaction entirely. You can globally disable Veil's redaction behavior at runtime by enabling the _non-default_ feature flag `toggle` and:
 
 - Setting the `VEIL_DISABLE_REDACTION` environment variable to "1", "true" or "on" (case insensitive).
 
 OR
 
 - Calling the [`veil::disable`](https://docs.rs/veil/latest/veil/fn.disable.html) function. See this [example](examples/disable_redaction.rs).
+
+Fields can be marked as `#[redact(secret)]`, which means they will always be masked fully regardless of global configuration.
 
 These are only checked ONCE for security purposes.

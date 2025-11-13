@@ -23,14 +23,14 @@ fn try_derive(mut item: syn::DeriveInput) -> Result<TokenStream, syn::Error> {
             return Err(syn::Error::new(
                 item_span,
                 "this trait cannot be derived for structs with no fields",
-            ))
+            ));
         }
         1 => s.fields.into_iter().next().unwrap(),
         _ => {
             return Err(syn::Error::new(
                 item_span,
                 "this trait cannot be derived for structs with multiple fields",
-            ))
+            ));
         }
     };
 

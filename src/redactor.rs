@@ -3,7 +3,7 @@
 //! To build a [`Redactor`], use the [`RedactorBuilder`].
 
 use crate::{
-    private::{RedactFlags, RedactionFormatter, RedactionLength, RedactionTarget},
+    private::{RedactFlags, RedactionFormatter, RedactionMode, RedactionTarget},
     util::give_me_a_formatter,
 };
 use std::fmt::{Debug, Display};
@@ -162,6 +162,7 @@ impl Redactor {
 pub struct RedactorBuilder {
     redact_char: Option<char>,
     partial: bool,
+    secret: bool,
 }
 impl RedactorBuilder {
     /// Initialize a new redaction flag builder.
@@ -170,6 +171,7 @@ impl RedactorBuilder {
         Self {
             redact_char: None,
             partial: false,
+            secret: false,
         }
     }
 
@@ -184,10 +186,25 @@ impl RedactorBuilder {
 
     /// Whether to only partially redact the data.
     ///
+    /// Incompatible with secret redaction
+    ///
     /// Equivalent to `#[redact(partial)]` when deriving.
     #[inline(always)]
     pub const fn partial(mut self) -> Self {
         self.partial = true;
+        self.secret = false;
+        self
+    }
+
+    /// Whether a field should always be redacted regardless of global configuration.
+    ///
+    /// Incompatible with partial redaction
+    ///
+    /// Equivalent to `#[redact(secret)]` when deriving, and incompatible with `#[redact(partial)]`.
+    #[inline(always)]
+    pub const fn secret(mut self) -> Self {
+        self.secret = true;
+        self.partial = false;
         self
     }
 
@@ -198,10 +215,12 @@ impl RedactorBuilder {
     #[inline(always)]
     pub const fn build(self) -> Result<Redactor, &'static str> {
         let mut flags = RedactFlags {
-            redact_length: if self.partial {
-                RedactionLength::Partial
+            redact_mode: if self.partial {
+                RedactionMode::Partial
+            } else if self.secret {
+                RedactionMode::Secret
             } else {
-                RedactionLength::Full
+                RedactionMode::Full
             },
 
             redact_char: '*',

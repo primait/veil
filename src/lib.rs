@@ -6,7 +6,7 @@
 //! The purpose of this macro is to allow for easy, configurable and efficient redaction of sensitive data in structs and enum variants.
 //! This can be used to hide sensitive data in logs or anywhere where personal data should not be exposed or stored.
 //!
-//! Redaction is unicode-aware. Only alphanumeric characters are redacted. Whitespace, symbols and other characters are left as-is.
+//! Redaction is unicode-aware. Unless the opt-in flag `secret` is passed, only alphanumeric characters are redacted. Whitespace, symbols and other characters are left as-is.
 //!
 //! # Controlling Redaction
 //!
@@ -19,8 +19,9 @@
 //! | **Modifier**                   |   | **Effects**                                                                                                                                                                          |   | **Default**                                   |
 //! |--------------------------------|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|-----------------------------------------------|
 //! | `#[redact(partial)]`           |   | If the string is long enough, a small part of the<br>beginning and end will be exposed. If the string is too short to securely expose a portion of it, it will be redacted entirely. |   | Disabled. The entire string will be redacted. |
-//! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                               |   | `'*'`                                         |
 //! | `#[redact(fixed = <integer>)]` |   | If this modifier is present, the length and contents of<br>the string are completely ignored and the string will always<br>be redacted as a fixed number of redaction characters.    |   | Disabled.                                     |
+//! | `#[redact(secret)]`            |   | Opts-out of global toggling, and forces complete redaction of the field by default (instead of just alphanumeric fields)                                                             |   | Disabled.                                     |
+//! | `#[redact(with = 'X')]`        |   | Specifies the `char` the string will be redacted with.                                                                                                                               |   | `'*'`                                         |
 //! | `#[redact(display)]`           |   | Overrides the redaction behavior to use the type's [`Display`](std::fmt::Display) implementation instead of [`Debug`].                                                               |   | Disabled.                                     |
 //!
 //! # Redacting All Fields in a Struct or Enum Variant
