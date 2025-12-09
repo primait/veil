@@ -35,6 +35,9 @@ pub enum RedactionLength {
 
 #[derive(Clone, Copy)]
 pub struct RedactFlags {
+    /// If we should skip non-alphanumeric characters when redacting
+    pub skip_non_alphanumeric: bool,
+
     /// How much of the data to redact.
     pub redact_length: RedactionLength,
 
@@ -54,7 +57,7 @@ impl RedactFlags {
         let count = to_redact.chars().filter(|char| char.is_alphanumeric()).count();
         if count < Self::MIN_PARTIAL_CHARS {
             for char in to_redact.chars() {
-                if char.is_alphanumeric() {
+                if char.is_alphanumeric() && self.skip_non_alphanumeric {
                     fmt.write_char(self.redact_char)?;
                 } else {
                     fmt.write_char(char)?;
@@ -87,7 +90,7 @@ impl RedactFlags {
 
     pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
         for char in to_redact.chars() {
-            if char.is_whitespace() || !char.is_alphanumeric() {
+            if (char.is_whitespace() || !char.is_alphanumeric()) && self.skip_non_alphanumeric {
                 fmt.write_char(char)?;
             } else {
                 fmt.write_char(self.redact_char)?;

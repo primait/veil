@@ -105,12 +105,15 @@ pub struct RedactFlags {
 
     /// The character to use for redacting. Defaults to `*`.
     pub redact_char: char,
+
+    pub all_utf8: bool,
 }
 impl Default for RedactFlags {
     fn default() -> Self {
         Self {
             redact_length: RedactionLength::Full,
             redact_char: '*',
+            all_utf8: false,
         }
     }
 }
@@ -138,6 +141,8 @@ impl ExtractFlags for RedactFlags {
                 NonZeroU8::new(int)
                     .ok_or_else(|| syn::Error::new_spanned(int, "fixed redacting width must be greater than zero"))
             })?)
+        } else if meta.path.is_ident("all_utf8") {
+            self.all_utf8 = true;
         } else {
             return Ok(ParseMeta::Unrecognised);
         }
@@ -149,12 +154,14 @@ impl quote::ToTokens for RedactFlags {
         let Self {
             redact_length,
             redact_char,
+            all_utf8,
             ..
         } = self;
 
         tokens.extend(quote! {
             redact_length: #redact_length,
-            redact_char: #redact_char
+            redact_char: #redact_char,
+            skip_non_alphanumeric: !#all_utf8,
         });
     }
 }

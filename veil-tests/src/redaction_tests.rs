@@ -10,6 +10,7 @@ pub const SENSITIVE_DATA: &[&str] = &[
     "039845734895",
     "10 Downing Street",
     "SensitiveVariant",
+    "password123!@#",
 ];
 
 const DEBUGGY_PHRASE: &str = "Hello \"William\"!\nAnd here's the newline...";
@@ -281,6 +282,40 @@ fn test_derive_redactable_modifiers() {
 }
 
 #[test]
+fn test_derive_redactable_all_utf8() {
+    #[derive(Redactable)]
+    #[redact(all_utf8)]
+    struct SensitiveString(String);
+    impl std::fmt::Display for SensitiveString {
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(fmt)
+        }
+    }
+
+    #[derive(Redactable)]
+    struct SensitiveStringLeaky(String);
+    impl std::fmt::Display for SensitiveStringLeaky {
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(fmt)
+        }
+    }
+
+    let sensitive = SensitiveString(SENSITIVE_DATA[5].to_string());
+    let sensitive_leaky = SensitiveStringLeaky(SENSITIVE_DATA[5].to_string());
+
+    assert_eq!(sensitive.redact(), "**************");
+    assert_eq!(sensitive_leaky.redact(), "***********!@#");
+
+    let mut buffer = String::new();
+    sensitive.redact_into(&mut buffer).unwrap();
+    assert_eq!(buffer, "**************");
+
+    buffer.clear();
+    sensitive_leaky.redact_into(&mut buffer).unwrap();
+    assert_eq!(buffer, "***********!@#");
+}
+
+#[test]
 fn test_derive_redactable_dyn() {
     #[derive(Redactable)]
     #[redact(fixed = 3, with = '-')]
@@ -316,6 +351,7 @@ fn test_derive_redactable_dyn() {
 fn test_enum_variant_names() {
     #[derive(Debug)]
     enum Control {
+        #[allow(dead_code)]
         Foo(String),
         Bar,
     }
