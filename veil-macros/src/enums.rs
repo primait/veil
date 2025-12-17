@@ -128,8 +128,8 @@ pub(super) fn derive_redact(
 
         // If there's top level flags, apply them to the variant's flags if they're not already set.
         if flags.variant_flags.is_none() {
-            if let Some(top_level_flags) = top_level_flags {
-                flags.variant_flags = Some(top_level_flags);
+            if let Some(top_level_flags) = &top_level_flags {
+                flags.variant_flags = Some(top_level_flags.clone());
             }
         }
 
@@ -170,7 +170,7 @@ pub(super) fn derive_redact(
             // The variant name must always be formatted with the Display impl.
             let flags = FieldFlags {
                 display: true,
-                ..*flags
+                ..flags.clone()
             };
 
             // Generate the RedactionFormatter expression for the variant name

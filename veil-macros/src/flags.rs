@@ -1,5 +1,5 @@
 use std::num::NonZeroU8;
-use syn::{spanned::Spanned, LitChar, LitInt};
+use syn::{spanned::Spanned, LitChar, LitInt, LitStr};
 
 pub struct FieldFlagsParse {
     pub skip_allowed: bool,
@@ -12,7 +12,7 @@ pub enum ParseMeta {
 
 type TryParseMeta = Result<ParseMeta, syn::Error>;
 
-pub trait ExtractFlags: Sized + Copy + Default {
+pub trait ExtractFlags: Sized + Clone + Default {
     type Options;
 
     fn try_parse_meta(&mut self, meta: &mut syn::meta::ParseNestedMeta) -> TryParseMeta;
@@ -33,7 +33,7 @@ pub trait ExtractFlags: Sized + Copy + Default {
         attrs: &[syn::Attribute],
         options: Self::Options,
     ) -> Result<[Option<Self>; AMOUNT], syn::Error> {
-        let mut extracted = [None; AMOUNT];
+        let mut extracted: [Option<Self>; AMOUNT] = std::array::from_fn(|_| None);
         let mut head = 0;
 
         for attr in attrs {
@@ -99,18 +99,36 @@ impl quote::ToTokens for RedactionLength {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Default)]
+pub enum RedactionStyle {
+    #[default]
+    Asterisks,
+    Char(char),
+    Str(String),
+}
+
+impl quote::ToTokens for RedactionStyle {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            RedactionStyle::Asterisks => quote! { veil::private::RedactionStyle::Asterisks }.to_tokens(tokens),
+            RedactionStyle::Char(ch) => quote! { veil::private::RedactionStyle::Char(#ch) }.to_tokens(tokens),
+            RedactionStyle::Str(s) => quote! { veil::private::RedactionStyle::Str(#s) }.to_tokens(tokens),
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct RedactFlags {
     pub redact_length: RedactionLength,
 
-    /// The character to use for redacting. Defaults to `*`.
-    pub redact_char: char,
+    /// The type of redation to be used for redacting. Defaults to using `*`.
+    pub redact_style: RedactionStyle,
 }
 impl Default for RedactFlags {
     fn default() -> Self {
         Self {
             redact_length: RedactionLength::Full,
-            redact_char: '*',
+            redact_style: RedactionStyle::default(),
         }
     }
 }
@@ -124,10 +142,20 @@ impl ExtractFlags for RedactFlags {
                 return TryParseMeta::Err(meta.error("`partial` clashes with an existing redaction length flag"));
             }
             self.redact_length = RedactionLength::Partial;
-        // #[redact(with = 'X')]
+        // #[redact(with = 'X')] | #[redact(with = "XXX")]
         } else if meta.path.is_ident("with") {
-            let ch: LitChar = meta.value()?.parse()?;
-            self.redact_char = ch.value();
+            let val = meta.value()?;
+            if val.peek(LitChar) {
+                let ch: LitChar = val.parse()?;
+                self.redact_style = RedactionStyle::Char(ch.value());
+            } else if val.peek(LitStr) {
+                let s: LitStr = val.parse()?;
+                self.redact_style = RedactionStyle::Str(s.value());
+            } else {
+                return TryParseMeta::Err(
+                    val.error("`with` expects a character literal (e.g. 'X') or string literal (e.g. \"[REDACTED]\")"),
+                );
+            }
             // #[redact(fixed = u8)]
         } else if meta.path.is_ident("fixed") {
             if self.redact_length != RedactionLength::Full {
@@ -148,18 +176,18 @@ impl quote::ToTokens for RedactFlags {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
             redact_length,
-            redact_char,
+            redact_style,
             ..
         } = self;
 
         tokens.extend(quote! {
             redact_length: #redact_length,
-            redact_char: #redact_char
+            redact_style: #redact_style
         });
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, PartialEq, Eq, Default)]
 pub struct FieldFlags {
     /// Whether to blanket redact everything (fields, variants)
     pub all: bool,

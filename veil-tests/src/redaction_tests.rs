@@ -95,6 +95,9 @@ fn test_sensitive_structs() {
 
         #[redact(with = '$')]
         data4: &'static str,
+
+        #[redact(with = "[REDACTED]")]
+        data5: &'static str,
     }
 
     #[derive(Redact)]
@@ -111,6 +114,7 @@ fn test_sensitive_structs() {
         data2: SENSITIVE_DATA[1],
         data3: SENSITIVE_DATA[2],
         data4: SENSITIVE_DATA[3],
+        data5: SENSITIVE_DATA[4],
     });
 
     assert_no_sensitive_data(SensitiveStructAll {
@@ -156,17 +160,19 @@ fn test_sensitive_tuple_structs() {
         #[redact(partial)] &'static str,
         #[redact(fixed = 6)] &'static str,
         #[redact(with = '$')] &'static str,
+        #[redact(with = "[REDACTED]")] &'static str,
     );
 
     #[derive(Redact)]
     #[redact(all, partial)]
-    struct SensitiveStructAll(&'static str, &'static str, &'static str, &'static str);
+    struct SensitiveStructAll(&'static str, &'static str, &'static str, &'static str, &'static str);
 
     assert_no_sensitive_data(SensitiveStruct(
         SENSITIVE_DATA[0],
         SENSITIVE_DATA[1],
         SENSITIVE_DATA[2],
         SENSITIVE_DATA[3],
+        SENSITIVE_DATA[4],
     ));
 
     assert_no_sensitive_data(SensitiveStructAll(
@@ -174,6 +180,7 @@ fn test_sensitive_tuple_structs() {
         SENSITIVE_DATA[1],
         SENSITIVE_DATA[2],
         SENSITIVE_DATA[3],
+        SENSITIVE_DATA[4],
     ));
 }
 

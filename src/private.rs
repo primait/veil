@@ -34,12 +34,19 @@ pub enum RedactionLength {
 }
 
 #[derive(Clone, Copy)]
+pub enum RedactionStyle<'a> {
+    Asterisks,
+    Char(char),
+    Str(&'a str),
+}
+
+#[derive(Clone, Copy)]
 pub struct RedactFlags {
     /// How much of the data to redact.
     pub redact_length: RedactionLength,
 
-    /// What character to use for redacting.
-    pub redact_char: char,
+    /// What style to use for redacting.
+    pub redact_style: RedactionStyle<'static>,
 }
 impl RedactFlags {
     /// How many characters must a word be for it to be partially redacted?
@@ -52,10 +59,24 @@ impl RedactFlags {
 
     pub(crate) fn redact_partial(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
         let count = to_redact.chars().filter(|char| char.is_alphanumeric()).count();
+        match &self.redact_style {
+            RedactionStyle::Asterisks => self.redact_partial_with_char(fmt, to_redact, '*', count),
+            RedactionStyle::Char(c) => self.redact_partial_with_char(fmt, to_redact, *c, count),
+            RedactionStyle::Str(s) => fmt.write_str(s),
+        }
+    }
+
+    fn redact_partial_with_char(
+        &self,
+        fmt: &mut std::fmt::Formatter,
+        to_redact: &str,
+        redact_char: char,
+        count: usize,
+    ) -> std::fmt::Result {
         if count < Self::MIN_PARTIAL_CHARS {
             for char in to_redact.chars() {
                 if char.is_alphanumeric() {
-                    fmt.write_char(self.redact_char)?;
+                    fmt.write_char(redact_char)?;
                 } else {
                     fmt.write_char(char)?;
                 }
@@ -73,7 +94,7 @@ impl RedactFlags {
                         fmt.write_char(char)?;
                     } else if middle_gas > 0 {
                         middle_gas -= 1;
-                        fmt.write_char(self.redact_char)?;
+                        fmt.write_char(redact_char)?;
                     } else {
                         fmt.write_char(char)?;
                     }
@@ -86,17 +107,38 @@ impl RedactFlags {
     }
 
     pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
+        match &self.redact_style {
+            RedactionStyle::Asterisks => self.redact_full_with_char(fmt, to_redact, '*'),
+            RedactionStyle::Char(c) => self.redact_full_with_char(fmt, to_redact, *c),
+            RedactionStyle::Str(s) => fmt.write_str(s),
+        }
+    }
+
+    fn redact_full_with_char(
+        &self,
+        fmt: &mut std::fmt::Formatter,
+        to_redact: &str,
+        redact_char: char,
+    ) -> std::fmt::Result {
         for char in to_redact.chars() {
             if char.is_whitespace() || !char.is_alphanumeric() {
                 fmt.write_char(char)?;
             } else {
-                fmt.write_char(self.redact_char)?;
+                fmt.write_char(redact_char)?;
             }
         }
         Ok(())
     }
 
-    pub(crate) fn redact_fixed(fmt: &mut std::fmt::Formatter, width: usize, char: char) -> std::fmt::Result {
+    fn redact_fixed_str(fmt: &mut std::fmt::Formatter, width: usize, s: &str) -> std::fmt::Result {
+        let mut buf = String::with_capacity(width);
+        for char in s.chars().take(width) {
+            buf.push(char);
+        }
+        fmt.write_str(&buf)
+    }
+
+    fn redact_fixed_char(fmt: &mut std::fmt::Formatter, width: usize, char: char) -> std::fmt::Result {
         let mut buf = String::with_capacity(width);
         for _ in 0..width {
             buf.push(char);
@@ -151,7 +193,17 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
         }
 
         if let RedactionLength::Fixed(n) = &self.flags.redact_length {
-            return RedactFlags::redact_fixed(fmt, n.get() as usize, self.flags.redact_char);
+            match &self.flags.redact_style {
+                RedactionStyle::Asterisks => {
+                    return RedactFlags::redact_fixed_char(fmt, n.get() as usize, '*');
+                }
+                RedactionStyle::Char(c) => {
+                    return RedactFlags::redact_fixed_char(fmt, n.get() as usize, *c);
+                }
+                RedactionStyle::Str(s) => {
+                    return RedactFlags::redact_fixed_str(fmt, n.get() as usize, s);
+                }
+            }
         }
 
         let redactable_string = self.this.to_string();
