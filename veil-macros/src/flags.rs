@@ -100,7 +100,7 @@ impl quote::ToTokens for RedactionLength {
 }
 
 #[derive(Clone, PartialEq, Eq, Default)]
-pub enum Redaction {
+pub enum RedactionContent {
     #[default]
     /// Redact with `*`.
     Asterisks,
@@ -110,12 +110,12 @@ pub enum Redaction {
     Str(String),
 }
 
-impl quote::ToTokens for Redaction {
+impl quote::ToTokens for RedactionContent {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
-            Redaction::Asterisks => quote! { veil::private::Redaction::Asterisks }.to_tokens(tokens),
-            Redaction::Char(ch) => quote! { veil::private::Redaction::Char(#ch) }.to_tokens(tokens),
-            Redaction::Str(s) => quote! { veil::private::Redaction::Str(#s) }.to_tokens(tokens),
+            RedactionContent::Asterisks => quote! { veil::private::RedactionContent::Asterisks }.to_tokens(tokens),
+            RedactionContent::Char(ch) => quote! { veil::private::RedactionContent::Char(#ch) }.to_tokens(tokens),
+            RedactionContent::Str(s) => quote! { veil::private::RedactionContent::Str(#s) }.to_tokens(tokens),
         }
     }
 }
@@ -125,13 +125,13 @@ pub struct RedactFlags {
     pub redact_length: RedactionLength,
 
     /// The type of redaction to be used. Defaults to using `*`.
-    pub redact_content: Redaction,
+    pub redact_content: RedactionContent,
 }
 impl Default for RedactFlags {
     fn default() -> Self {
         Self {
             redact_length: RedactionLength::Full,
-            redact_content: Redaction::default(),
+            redact_content: RedactionContent::default(),
         }
     }
 }
@@ -150,10 +150,10 @@ impl ExtractFlags for RedactFlags {
             let val = meta.value()?;
             if val.peek(LitChar) {
                 let ch: LitChar = val.parse()?;
-                self.redact_content = Redaction::Char(ch.value());
+                self.redact_content = RedactionContent::Char(ch.value());
             } else if val.peek(LitStr) {
                 let s: LitStr = val.parse()?;
-                self.redact_content = Redaction::Str(s.value());
+                self.redact_content = RedactionContent::Str(s.value());
             } else {
                 return TryParseMeta::Err(
                     val.error("`with` expects a character literal (e.g. 'X') or string literal (e.g. \"[REDACTED]\")"),
@@ -180,7 +180,6 @@ impl quote::ToTokens for RedactFlags {
         let Self {
             redact_length,
             redact_content,
-            ..
         } = self;
 
         tokens.extend(quote! {
