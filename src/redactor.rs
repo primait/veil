@@ -3,7 +3,7 @@
 //! To build a [`Redactor`], use the [`RedactorBuilder`].
 
 use crate::{
-    private::{RedactFlags, RedactionFormatter, RedactionLength, RedactionStyle, RedactionTarget},
+    private::{RedactFlags, RedactionContent, RedactionFormatter, RedactionLength, RedactionTarget},
     util::give_me_a_formatter,
 };
 use std::fmt::{Debug, Display};
@@ -160,7 +160,7 @@ impl Redactor {
 
 /// A checked builder for [`Redactor`]s.
 pub struct RedactorBuilder {
-    redact_style: Option<RedactionStyle<'static>>,
+    redact_content: Option<RedactionContent<'static>>,
     partial: bool,
 }
 impl RedactorBuilder {
@@ -168,7 +168,7 @@ impl RedactorBuilder {
     #[inline(always)]
     pub const fn new() -> Self {
         Self {
-            redact_style: None,
+            redact_content: None,
             partial: false,
         }
     }
@@ -178,7 +178,7 @@ impl RedactorBuilder {
     /// Equivalent to `#[redact(with = '...')]` when deriving.
     #[inline(always)]
     pub const fn char(mut self, char: char) -> Self {
-        self.redact_style = Some(RedactionStyle::Char(char));
+        self.redact_content = Some(RedactionContent::Char(char));
         self
     }
 
@@ -187,7 +187,7 @@ impl RedactorBuilder {
     /// Equivalent to `#[redact(with = "...")]` when deriving.
     #[inline(always)]
     pub const fn str(mut self, str: &'static str) -> Self {
-        self.redact_style = Some(RedactionStyle::Str(str));
+        self.redact_content = Some(RedactionContent::Str(str));
         self
     }
 
@@ -213,9 +213,9 @@ impl RedactorBuilder {
                 RedactionLength::Full
             },
 
-            redact_style: match self.redact_style {
+            redact_content: match self.redact_content {
                 Some(style) => style,
-                None => RedactionStyle::Asterisks,
+                None => RedactionContent::Asterisks,
             },
         };
 

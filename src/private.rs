@@ -34,9 +34,14 @@ pub enum RedactionLength {
 }
 
 #[derive(Clone, Copy)]
-pub enum RedactionStyle<'a> {
+pub enum RedactionContent<'a> {
+    /// Redact with asterisks.
     Asterisks,
+
+    /// Redact with a single character.
     Char(char),
+
+    /// Redact with a string.
     Str(&'a str),
 }
 
@@ -45,8 +50,8 @@ pub struct RedactFlags {
     /// How much of the data to redact.
     pub redact_length: RedactionLength,
 
-    /// What style to use for redacting.
-    pub redact_style: RedactionStyle<'static>,
+    /// The type of redaction to be used. Defaults to using `*`.
+    pub redact_content: RedactionContent<'static>,
 }
 impl RedactFlags {
     /// How many characters must a word be for it to be partially redacted?
@@ -59,10 +64,10 @@ impl RedactFlags {
 
     pub(crate) fn redact_partial(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
         let count = to_redact.chars().filter(|char| char.is_alphanumeric()).count();
-        match &self.redact_style {
-            RedactionStyle::Asterisks => self.redact_partial_with_char(fmt, to_redact, '*', count),
-            RedactionStyle::Char(c) => self.redact_partial_with_char(fmt, to_redact, *c, count),
-            RedactionStyle::Str(s) => fmt.write_str(s),
+        match &self.redact_content {
+            RedactionContent::Asterisks => self.redact_partial_with_char(fmt, to_redact, '*', count),
+            RedactionContent::Char(c) => self.redact_partial_with_char(fmt, to_redact, *c, count),
+            RedactionContent::Str(s) => fmt.write_str(s),
         }
     }
 
@@ -107,10 +112,10 @@ impl RedactFlags {
     }
 
     pub(crate) fn redact_full(&self, fmt: &mut std::fmt::Formatter, to_redact: &str) -> std::fmt::Result {
-        match &self.redact_style {
-            RedactionStyle::Asterisks => self.redact_full_with_char(fmt, to_redact, '*'),
-            RedactionStyle::Char(c) => self.redact_full_with_char(fmt, to_redact, *c),
-            RedactionStyle::Str(s) => fmt.write_str(s),
+        match &self.redact_content {
+            RedactionContent::Asterisks => self.redact_full_with_char(fmt, to_redact, '*'),
+            RedactionContent::Char(c) => self.redact_full_with_char(fmt, to_redact, *c),
+            RedactionContent::Str(s) => fmt.write_str(s),
         }
     }
 
@@ -193,14 +198,14 @@ impl std::fmt::Debug for RedactionFormatter<'_> {
         }
 
         if let RedactionLength::Fixed(n) = &self.flags.redact_length {
-            match &self.flags.redact_style {
-                RedactionStyle::Asterisks => {
+            match &self.flags.redact_content {
+                RedactionContent::Asterisks => {
                     return RedactFlags::redact_fixed_char(fmt, n.get() as usize, '*');
                 }
-                RedactionStyle::Char(c) => {
+                RedactionContent::Char(c) => {
                     return RedactFlags::redact_fixed_char(fmt, n.get() as usize, *c);
                 }
-                RedactionStyle::Str(s) => {
+                RedactionContent::Str(s) => {
                     return RedactFlags::redact_fixed_str(fmt, n.get() as usize, s);
                 }
             }
