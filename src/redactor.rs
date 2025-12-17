@@ -218,7 +218,6 @@ impl RedactorBuilder {
                 None => RedactionStyle::Asterisks,
             },
         };
-        
 
         Ok(Redactor(flags))
     }
