@@ -15,6 +15,9 @@ pub struct Customer {
 
     #[redact(fixed = 2)]
     age: u32,
+
+    #[redact(with = "[REDACTED]")]
+    address: String,
 }
 
 fn main() {
@@ -30,6 +33,7 @@ fn main() {
             // By default, only alphabetic characters are redacted
             email: Some("johndoe@example.com".to_string()),
             age: 30,
+            address: "1234 Elm Street, Springfield, XZ".to_string(),
         }
     );
 }

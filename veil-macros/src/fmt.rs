@@ -76,7 +76,7 @@ impl FormatData<'_> {
 
             // Parse field flags from attributes on this field
             let field_flags = match field.attrs.len() {
-                0 => all_fields_flags,
+                0 => all_fields_flags.clone(),
                 1 => match FieldFlags::extract::<1>(
                     "Redact",
                     &field.attrs,

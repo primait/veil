@@ -3,7 +3,7 @@
 //! To build a [`Redactor`], use the [`RedactorBuilder`].
 
 use crate::{
-    private::{RedactFlags, RedactionFormatter, RedactionLength, RedactionTarget},
+    private::{RedactFlags, RedactionContent, RedactionFormatter, RedactionLength, RedactionTarget},
     util::give_me_a_formatter,
 };
 use std::fmt::{Debug, Display};
@@ -160,7 +160,7 @@ impl Redactor {
 
 /// A checked builder for [`Redactor`]s.
 pub struct RedactorBuilder {
-    redact_char: Option<char>,
+    redact_content: Option<RedactionContent<'static>>,
     partial: bool,
 }
 impl RedactorBuilder {
@@ -168,7 +168,7 @@ impl RedactorBuilder {
     #[inline(always)]
     pub const fn new() -> Self {
         Self {
-            redact_char: None,
+            redact_content: None,
             partial: false,
         }
     }
@@ -178,7 +178,16 @@ impl RedactorBuilder {
     /// Equivalent to `#[redact(with = '...')]` when deriving.
     #[inline(always)]
     pub const fn char(mut self, char: char) -> Self {
-        self.redact_char = Some(char);
+        self.redact_content = Some(RedactionContent::Char(char));
+        self
+    }
+
+    /// Set the string to use for redacting.
+    ///
+    /// Equivalent to `#[redact(with = "...")]` when deriving.
+    #[inline(always)]
+    pub const fn str(mut self, str: &'static str) -> Self {
+        self.redact_content = Some(RedactionContent::Str(str));
         self
     }
 
@@ -197,19 +206,18 @@ impl RedactorBuilder {
     /// The error will be optimised away by the compiler if the builder is valid at compile time, so it's safe and zero-cost to use `unwrap` on the result if you are constructing this at compile time.
     #[inline(always)]
     pub const fn build(self) -> Result<Redactor, &'static str> {
-        let mut flags = RedactFlags {
+        let flags = RedactFlags {
             redact_length: if self.partial {
                 RedactionLength::Partial
             } else {
                 RedactionLength::Full
             },
 
-            redact_char: '*',
+            redact_content: match self.redact_content {
+                Some(style) => style,
+                None => RedactionContent::Asterisks,
+            },
         };
-
-        if let Some(char) = self.redact_char {
-            flags.redact_char = char;
-        }
 
         Ok(Redactor(flags))
     }

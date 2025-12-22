@@ -43,7 +43,9 @@ fn try_derive(mut item: syn::DeriveInput) -> Result<TokenStream, syn::Error> {
         ));
     }
 
-    let flags = RedactFlags::extract::<1>("Redactable", &item.attrs, ())?[0].unwrap_or_default();
+    let flags = RedactFlags::extract::<1>("Redactable", &item.attrs, ())?[0]
+        .clone()
+        .unwrap_or_default();
 
     let name_ident = &item.ident;
     let (impl_generics, ty_generics, where_clause) = item.generics.split_for_impl();
