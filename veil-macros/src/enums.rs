@@ -163,7 +163,7 @@ pub(super) fn derive_redact(
     // Create an iterator that will yield the tokens of the body of the match arm for each variant.
     // These match arm bodies will actually print data into the Formatter.
     let mut variant_bodies = Vec::with_capacity(e.variants.len());
-    for (variant, flags) in e.variants.iter().zip(variant_flags.into_iter()) {
+    for (variant, flags) in e.variants.iter().zip(variant_flags) {
         // Variant name redacting
         let variant_name = variant.ident.to_string();
         let variant_name = if let Some(flags @ FieldFlags { skip: false, .. }) = &flags.variant_flags {
