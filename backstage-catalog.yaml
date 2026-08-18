@@ -6,4 +6,4 @@ metadata:
 spec:
   type: library
   lifecycle: production
-  owner: team-developer-experience
+  owner: team-iam
